@@ -18,7 +18,7 @@ async function checkBackendVersion(){
   }
 }
 
-window.SANLIAN_BUILD="7.0.2";console.log("SANLIAN BUILD 7.0.2 REPEAT ADD FIX loaded");
+window.SANLIAN_BUILD="7.0.6";console.log("SANLIAN BUILD 7.0.6 CLOSE PRODUCT FORM FIX loaded");
 
 async function removeOldServiceWorkersAndCaches(){
   try{
@@ -157,9 +157,10 @@ function upsertLocalProduct(product){
 }
 function renderProductRelated(){
   renderProducts();
-  renderMetrics();
+  metrics();
   renderReport();
-  renderCharts();
+  if(typeof renderCharts==="function")renderCharts();
+  else if(typeof renderDashboardCharts==="function")renderDashboardCharts();
 }
 function setFormSaving(form,isSaving){
   if(!form)return;
@@ -841,7 +842,9 @@ document.addEventListener("click",async e=>{const n=e.target.closest("[data-page
    if(f.elements.product_id)f.elements.product_id.value="";
    if(f.elements.barcode)f.elements.barcode.value=generateLocalBarcode();
    if(f.elements.sku)f.elements.sku.value=generateLocalSku();
-   $("#productModal")?.classList.add("open");
+   const productModal=$("#productModal");
+   productModal?.classList.add("open");
+   productModal?.setAttribute("aria-hidden","false");
    setTimeout(()=>applyLanguage(currentLanguage),0);
  }
  const ep=e.target.closest("[data-edit-product]");
@@ -925,12 +928,19 @@ $("#productForm").onsubmit=async e=>{
       upsertLocalProduct({...submittedData});
     }
 
-    renderProductRelated();
-    form.reset();
-    form.dataset.mode="";
-    form.dataset.editingProductId="";
-    $("#productModal")?.classList.remove("open");
+    // Backend save succeeded: close and clear the form immediately.
+    closeProductModalAfterSave();
+
+    // Force the browser to paint the closed modal before refresh/render work.
+    await new Promise(resolve=>requestAnimationFrame(()=>resolve()));
+
     toast("ບັນທຶກອຸປະກອນສຳເລັດ");
+
+    try{
+      renderProductRelated();
+    }catch(renderErr){
+      console.warn("Product saved, local render failed:",renderErr);
+    }
 
     try{
       await refreshAll();
@@ -948,6 +958,31 @@ $("#productForm").onsubmit=async e=>{
       submitButton.textContent=submitButton.dataset.defaultText||originalButtonText;
     }
   }
+}
+
+function closeProductModalAfterSave(){
+  const modal=$("#productModal");
+  const form=$("#productForm");
+
+  if(form){
+    form.reset();
+    form.dataset.mode="";
+    form.dataset.editingProductId="";
+    form.dataset.saving="0";
+
+    const saveButton=form.querySelector('button[type="submit"],button.primary:not([type])');
+    if(saveButton){
+      saveButton.disabled=false;
+      saveButton.textContent=saveButton.dataset.defaultText||"ບັນທຶກ";
+    }
+  }
+
+  if(modal){
+    modal.classList.remove("open");
+    modal.setAttribute("aria-hidden","true");
+  }
+
+  document.body.classList.remove("modal-open");
 }
 
 function resetStockForm(fid){
