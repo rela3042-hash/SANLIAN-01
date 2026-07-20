@@ -1,0 +1,10 @@
+SANLIAN Inventory v7.0.1 Fixed
+
+ແກ້ໄຂ:
+- ແກ້ initLanguage is not defined
+- ແກ້ e.key.length error
+- ແກ້ປຸ່ມບັນທຶກເພີ່ມອຸປະກອນ
+- ປ້ອງກັນການກົດບັນທຶກຊ້ຳ
+- ຮັກສາ Login ເວລາ Refresh ຖ້າ Session ຍັງມີ
+- Admin ເທົ່ານັ້ນສາມາດສ້າງ User
+- ຮັກສາພາສາຈີນເດີມ
