@@ -1030,3 +1030,12 @@ body.auth-app{
     width:100%;
   }
 }
+
+/* v7.1.4 Manual/Auto controls */
+#productForm .entry-mode-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+#productForm .entry-mode-btn{min-height:36px;border:0;border-radius:7px;background:transparent;color:var(--muted);font-weight:800;cursor:pointer}
+#productForm .entry-mode-btn.active{background:var(--primary);color:#fff}
+#productForm input.manual-entry{background:#fff;border-color:var(--primary)}
+#productForm input[readonly]{cursor:not-allowed;background:var(--soft)}
+#productForm .barcode-auto-row.mode-manual{grid-template-columns:1fr}
+#productForm .barcode-auto-row.mode-manual>button{display:none!important}

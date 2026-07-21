@@ -18,7 +18,7 @@ async function checkBackendVersion(){
   }
 }
 
-window.SANLIAN_BUILD="7.1.3";console.log("SANLIAN BUILD 7.1.3 PRODUCT FORM FINAL loaded");
+window.SANLIAN_BUILD="7.1.4";console.log("SANLIAN BUILD 7.1.4 MANUAL AUTO BARCODE SKU loaded");
 
 async function removeOldServiceWorkersAndCaches(){
   try{
@@ -1079,12 +1079,61 @@ $("#productForm").onsubmit=async e=>{
   }
 }
 
+
+const PRODUCT_ENTRY_MODES={barcode:"auto",sku:"auto"};
+
+function applyProductEntryMode(target,mode,{generate=true}={}){
+  const form=$("#productForm");
+  if(!form)return;
+  const input=form.elements[target];
+  const autoButton=target==="barcode"?$("#generateBarcodeBtn"):$("#generateSkuBtn");
+  const hint=target==="barcode"?$("#barcodeModeHint"):$("#skuModeHint");
+  const row=input?.closest(".barcode-auto-row");
+  const normalized=mode==="manual"?"manual":"auto";
+  PRODUCT_ENTRY_MODES[target]=normalized;
+
+  form.querySelectorAll(`[data-entry-target="${target}"]`).forEach(btn=>{
+    btn.classList.toggle("active",btn.dataset.entryMode===normalized);
+  });
+
+  const manual=normalized==="manual";
+  input.readOnly=!manual;
+  input.classList.toggle("manual-entry",manual);
+  row?.classList.toggle("mode-manual",manual);
+  if(autoButton){autoButton.hidden=manual;autoButton.disabled=manual;}
+
+  if(manual){
+    input.value="";
+    input.placeholder=target==="barcode"?"ປ້ອນ Barcode ດ້ວຍຕົນເອງ":"ປ້ອນ SKU ດ້ວຍຕົນເອງ";
+    if(hint)hint.textContent=target==="barcode"?"ໂໝດປ້ອນເອງ: ສູງສຸດ 13 ຫຼັກ":"ໂໝດປ້ອນເອງ: ກຳນົດ SKU ໄດ້ເອງ";
+    setTimeout(()=>input.focus(),0);
+  }else{
+    input.placeholder="";
+    if(hint)hint.textContent=target==="barcode"?"ໂໝດ Auto: ລະບົບສ້າງ Barcode 13 ຫຼັກ":"ໂໝດ Auto: ລະບົບສ້າງ SKU ອັດຕະໂນມັດ";
+    if(generate){
+      if(target==="barcode")generateBarcode();
+      else generateSku();
+    }
+  }
+}
+
+function resetProductEntryModes(){
+  applyProductEntryMode("barcode","auto",{generate:false});
+  applyProductEntryMode("sku","auto",{generate:false});
+}
+
+document.addEventListener("click",e=>{
+  const btn=e.target.closest("[data-entry-mode][data-entry-target]");
+  if(btn)applyProductEntryMode(btn.dataset.entryTarget,btn.dataset.entryMode);
+});
+
 function closeProductModalAfterSave(){
   const modal=$("#productModal");
   const form=$("#productForm");
 
   if(form){
     form.reset();
+    resetProductEntryModes();
     form.dataset.mode="";
     form.dataset.editingProductId="";
     form.dataset.saving="0";
