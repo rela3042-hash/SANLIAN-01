@@ -18,7 +18,7 @@ async function checkBackendVersion(){
   }
 }
 
-window.SANLIAN_BUILD="7.0.6";console.log("SANLIAN BUILD 7.0.6 CLOSE PRODUCT FORM FIX loaded");
+window.SANLIAN_BUILD="7.0.7";console.log("SANLIAN BUILD 7.0.7 SCANNER SOUND loaded");
 
 async function removeOldServiceWorkersAndCaches(){
   try{
@@ -587,12 +587,67 @@ function findProductByCode(value){
  const code=String(value||"").trim();
  return state.products.find(p=>String(p.barcode)===code||String(p.sku)===code||String(p.product_id)===code);
 }
+
+let scanAudioContext=null;
+
+function playScanSound(success=true){
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)return;
+
+    if(!scanAudioContext)scanAudioContext=new AudioCtx();
+    if(scanAudioContext.state==="suspended")scanAudioContext.resume();
+
+    const now=scanAudioContext.currentTime;
+    const gain=scanAudioContext.createGain();
+    gain.connect(scanAudioContext.destination);
+
+    gain.gain.setValueAtTime(0.0001,now);
+    gain.gain.exponentialRampToValueAtTime(0.22,now+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001,now+(success?0.16:0.28));
+
+    const osc=scanAudioContext.createOscillator();
+    osc.type=success?"sine":"square";
+    osc.frequency.setValueAtTime(success?1150:300,now);
+
+    if(success){
+      osc.frequency.exponentialRampToValueAtTime(1650,now+0.12);
+    }else{
+      osc.frequency.setValueAtTime(300,now);
+      osc.frequency.setValueAtTime(220,now+0.14);
+    }
+
+    osc.connect(gain);
+    osc.start(now);
+    osc.stop(now+(success?0.17:0.29));
+
+    if(navigator.vibrate){
+      navigator.vibrate(success?45:[70,45,70]);
+    }
+  }catch(err){
+    console.warn("Scanner sound unavailable:",err);
+  }
+}
+
+// Unlock mobile audio after the first user interaction.
+["pointerdown","touchstart","keydown"].forEach(eventName=>{
+  document.addEventListener(eventName,()=>{
+    try{
+      const AudioCtx=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtx)return;
+      if(!scanAudioContext)scanAudioContext=new AudioCtx();
+      if(scanAudioContext.state==="suspended")scanAudioContext.resume();
+    }catch(_){}
+  },{once:true,passive:true});
+});
+
 function applyScannedCode(value,targetId){
  const input=$("#"+targetId);
  if(!input)return;
  input.value=String(value||"").trim();
  const p=findProductByCode(input.value);
- if(!p){toast("ບໍ່ພົບ Barcode / QR Code ນີ້");return}
+ if(!p){playScanSound(false);toast("ບໍ່ພົບ Barcode / QR Code ນີ້");return}
+ playScanSound(true);
  const formId=targetId==="inBarcode"?"stockInForm":"stockOutForm";
  const f=$("#"+formId);
  f.elements.category.value=p.category_id;
@@ -1123,8 +1178,8 @@ $("#stockOutForm").onsubmit=async e=>{
    };
  }
 })
-$("#inBarcode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const code=String(e.target.value||"").trim();const p=state.products.find(x=>String(x.barcode)===code||String(x.sku)===code);if(p){const f=$("#stockInForm");f.elements.category.value=p.category_id;f.elements.category.dataset.selectedCategory=String(p.category_id);fillProducts("stockInForm");f.elements.productId.value=p.product_id;f.elements.productId.dataset.selectedProduct=String(p.product_id);syncForm("stockInForm")}else toast(t("ບໍ່ພົບ Barcode"))}}
-$("#outBarcode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const code=String(e.target.value||"").trim();const p=state.products.find(x=>String(x.barcode)===code||String(x.sku)===code);if(p){const f=$("#stockOutForm");f.elements.category.value=p.category_id;f.elements.category.dataset.selectedCategory=String(p.category_id);fillProducts("stockOutForm");f.elements.productId.value=p.product_id;f.elements.productId.dataset.selectedProduct=String(p.product_id);syncForm("stockOutForm")}else toast(t("ບໍ່ພົບ Barcode"))}}
+$("#inBarcode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const code=String(e.target.value||"").trim();const p=state.products.find(x=>String(x.barcode)===code||String(x.sku)===code);if(p){playScanSound(true);const f=$("#stockInForm");f.elements.category.value=p.category_id;f.elements.category.dataset.selectedCategory=String(p.category_id);fillProducts("stockInForm");f.elements.productId.value=p.product_id;f.elements.productId.dataset.selectedProduct=String(p.product_id);syncForm("stockInForm")}else{playScanSound(false);toast(t("ບໍ່ພົບ Barcode"))}}}
+$("#outBarcode").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();const code=String(e.target.value||"").trim();const p=state.products.find(x=>String(x.barcode)===code||String(x.sku)===code);if(p){playScanSound(true);const f=$("#stockOutForm");f.elements.category.value=p.category_id;f.elements.category.dataset.selectedCategory=String(p.category_id);fillProducts("stockOutForm");f.elements.productId.value=p.product_id;f.elements.productId.dataset.selectedProduct=String(p.product_id);syncForm("stockOutForm")}else{playScanSound(false);toast(t("ບໍ່ພົບ Barcode"))}}}
 const userModal=$("#userModal"), userForm=$("#userForm"), addUserBtn=$("#addUserBtn");
 function closeUserModal(){
   if(!userModal)return;
