@@ -18,7 +18,7 @@ async function checkBackendVersion(){
   }
 }
 
-window.SANLIAN_BUILD="7.0.7";console.log("SANLIAN BUILD 7.0.7 SCANNER SOUND loaded");
+window.SANLIAN_BUILD="7.1.3";console.log("SANLIAN BUILD 7.1.3 PRODUCT FORM FINAL loaded");
 
 async function removeOldServiceWorkersAndCaches(){
   try{
@@ -277,17 +277,42 @@ function hideBoot(){
  const boot=$("#bootView");
  if(boot)boot.classList.add("hidden");
 }
-function showLogin(){
- hideBoot();
- const login=$("#loginView"),appView=$("#appView");
- if(login)login.classList.remove("hidden");
- if(appView)appView.classList.add("hidden");
+function setAuthView(mode){
+  hideBoot();
+  const login=$("#loginView");
+  const appView=$("#appView");
+  const showAppView=mode==="app";
+
+  document.body.classList.remove("auth-pending","auth-login","auth-app");
+  document.body.classList.add(showAppView?"auth-app":"auth-login");
+
+  if(login){
+    login.hidden=showAppView;
+    login.setAttribute("aria-hidden",showAppView?"true":"false");
+    login.classList.toggle("hidden",showAppView);
+    login.style.setProperty("display",showAppView?"none":"grid","important");
+  }
+
+  if(appView){
+    appView.hidden=!showAppView;
+    appView.setAttribute("aria-hidden",showAppView?"false":"true");
+    appView.classList.toggle("hidden",!showAppView);
+    appView.style.setProperty("display",showAppView?"grid":"none","important");
+  }
+
+  // Final defensive check after layout/style recalculation.
+  requestAnimationFrame(()=>{
+    if(login)login.style.setProperty("display",showAppView?"none":"grid","important");
+    if(appView)appView.style.setProperty("display",showAppView?"grid":"none","important");
+  });
 }
+
+function showLogin(){
+  setAuthView("login");
+}
+
 function showApp(){
- hideBoot();
- const login=$("#loginView"),appView=$("#appView");
- if(login)login.classList.add("hidden");
- if(appView)appView.classList.remove("hidden");
+  setAuthView("app");
 }
 function applyRole(){
  const role=currentUser?.role||"Viewer";
@@ -302,8 +327,14 @@ async function login(username,password){
  localStorage.setItem("signshop_session",sessionToken);
  localStorage.setItem(USER_CACHE_KEY,JSON.stringify(currentUser));
  applyRole();
- await refreshAll();
  showApp();
+ try{
+   await refreshAll();
+ }catch(err){
+   console.error("Initial refresh after login failed:",err);
+   setText("#syncStatus","● Offline");
+   toast("Login ສຳເລັດ ແຕ່ການ Sync ຂໍ້ມູນມີບັນຫາ");
+ }
 }
 function isAuthenticationError(error){
  const message=String(error?.message||error||'').toLowerCase();
@@ -841,6 +872,39 @@ function renderBackups(){
  if($("#backupBody"))$("#backupBody").innerHTML=rows.map(b=>`<tr><td>${b.backup_id}</td><td>${b.created_at}</td><td>${b.file_name}</td><td><span class="badge">${b.status}</span></td><td>${b.created_by}</td><td>${b.drive_file_id||"-"}</td></tr>`).join("");
  if($("#backupMetrics"))$("#backupMetrics").innerHTML=[["Backup ທັງໝົດ",rows.length],["ສຳເລັດ",rows.filter(x=>x.status==="SUCCESS").length],["ລົ້ມເຫຼວ",rows.filter(x=>x.status==="FAILED").length],["ລ່າສຸດ",rows[0]?.created_at||"-"]].map(x=>`<div class="metric"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join("");
 }
+
+async function clearAuditLogsAsAdmin(){
+  const role=String(currentUser?.role||currentUser?.user?.role||"").toLowerCase();
+  if(role!=="admin"){
+    toast("ສະເພາະ Admin ເທົ່ານັ້ນ");
+    return;
+  }
+
+  const first=confirm("⚠️ ຈະລ້າງ Audit Log ທັງໝົດບໍ? ຂໍ້ມູນຈະບໍ່ສາມາດກູ້ຄືນໄດ້.");
+  if(!first)return;
+
+  const text=prompt('ພິມຄຳວ່າ DELETE ເພື່ອຢືນຢັນ');
+  if(text!=="DELETE"){
+    toast("ຍົກເລີກ: ຄຳຢືນຢັນບໍ່ຖືກຕ້ອງ");
+    return;
+  }
+
+  const button=$("#clearAuditBtn");
+  if(button)button.disabled=true;
+  try{
+    await api("clearAuditLogs",{confirm:"DELETE"});
+    state.auditLogs=[];
+    auditPage=1;
+    renderAudit();
+    toast("ລ້າງ Audit Log ສຳເລັດ");
+    await refreshAll().catch(()=>{});
+  }catch(err){
+    toast(err.message||"ລ້າງ Audit Log ບໍ່ສຳເລັດ");
+  }finally{
+    if(button)button.disabled=false;
+  }
+}
+
 function exportAuditCsv(){
  const list=auditFiltered(),rows=[["created_at","username","role","action","entity_type","entity_id","details"],...list.map(x=>[x.created_at,x.username,x.role,x.action,x.entity_type,x.entity_id,x.details])];
  const csv="\uFEFF"+rows.map(r=>r.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="audit-log.csv";a.click()
@@ -1035,6 +1099,7 @@ function closeProductModalAfterSave(){
   if(modal){
     modal.classList.remove("open");
     modal.setAttribute("aria-hidden","true");
+    modal.style.removeProperty("display");
   }
 
   document.body.classList.remove("modal-open");
@@ -1282,11 +1347,26 @@ if(userForm)userForm.addEventListener("submit",async e=>{
 $("#addCategoryBtn").onclick=async()=>{const name=prompt("ຊື່ໝວດໝູ່");if(name)try{await api("createCategory",{category_name:name});await refreshAll()}catch(err){toast(err.message)}}
 $("#productSearch").oninput=()=>{productPage=1;renderProducts()};$("#productCategoryFilter").onchange=()=>{productPage=1;renderProducts()};$("#productStatusFilter").onchange=()=>{productPage=1;renderProducts()};$("#reportCategory").onchange=()=>{reportPage=1;renderReport()};$("#reportStatus").onchange=()=>{reportPage=1;renderReport()}
 $("#exportProducts").onclick=()=>exportCsv(filteredProducts(),"products.csv");$("#exportReport").onclick=()=>exportCsv(filteredProducts(true),"stock-report.csv");
-function printSection(mode){
-  document.body.classList.remove("print-products","print-report","print-qr");
-  document.body.classList.add(mode);
+function setPrintOrientation(orientation){
+  let style=document.getElementById("printPageOrientation");
+  if(!style){
+    style=document.createElement("style");
+    style.id="printPageOrientation";
+    document.head.appendChild(style);
+  }
+  const value=orientation==="landscape"?"landscape":"portrait";
+  style.textContent=`@media print{@page{size:A4 ${value};margin:10mm}}`;
+  localStorage.setItem("sanlian_print_orientation",value);
+  return value;
+}
+
+function printSection(mode,orientation="portrait"){
+  const selected=setPrintOrientation(orientation);
+  document.body.classList.remove("print-products","print-report","print-qr","print-portrait","print-landscape");
+  document.body.classList.add(mode,selected==="landscape"?"print-landscape":"print-portrait");
+
   const cleanup=()=>{
-    document.body.classList.remove("print-products","print-report","print-qr");
+    document.body.classList.remove("print-products","print-report","print-qr","print-portrait","print-landscape");
     const f=$("#productForm");
     if(f){
       f.dataset.saving="0";
@@ -1294,10 +1374,14 @@ function printSection(mode){
       if(b){b.disabled=false;b.textContent=b.dataset.defaultText||"ບັນທຶກ";}
     }
   };
+
   window.addEventListener("afterprint",cleanup,{once:true});
-  setTimeout(()=>window.print(),50);
+  setTimeout(()=>window.print(),80);
 }
-$("#printProducts").onclick=()=>printSection("print-products");$("#printReport").onclick=()=>printSection("print-report")
+$("#printProductsPortrait")?.addEventListener("click",()=>printSection("print-products","portrait"));
+$("#printProductsLandscape")?.addEventListener("click",()=>printSection("print-products","landscape"));
+$("#printReportPortrait")?.addEventListener("click",()=>printSection("print-report","portrait"));
+$("#printReportLandscape")?.addEventListener("click",()=>printSection("print-report","landscape"))
 $("#syncBtn").onclick=()=>refreshAll().catch(e=>toast(e.message));$("#themeBtn").onclick=()=>document.body.classList.toggle("dark");$("#globalSearch").oninput=e=>{openPage("products");$("#productSearch").value=e.target.value;renderProducts()}
 setInterval(()=>{if(sessionToken)refreshAll().catch(()=>{})},(window.SIGNSHOP_CONFIG?.POLL_SECONDS||15)*1000);
 
@@ -1306,7 +1390,7 @@ $("#refreshDashboard").onclick=()=>refreshAll().catch(e=>toast(e.message));
 $("#exportDashboard").onclick=exportDashboardSummary;
 $("#reportRangeType").onchange=e=>{const t=e.target.value;$("#reportDate").classList.toggle("hidden",t!=="day");$("#reportMonth").classList.toggle("hidden",t!=="month");$("#reportYear").classList.toggle("hidden",t!=="year");reportPage=1;renderReport()};
 ["reportDate","reportMonth","reportYear"].forEach(id=>$("#"+id).onchange=()=>{reportPage=1;renderReport()});
-$("#exportReportPdf").onclick=()=>printSection("print-report");
+$("#exportReportPdf").onclick=()=>printSection("print-report",localStorage.getItem("sanlian_print_orientation")||"portrait");
 
 $("#closeScannerBtn").onclick=closeScanner;
 $("#cameraSelect").onchange=async e=>{activeCameraIndex=Number(e.target.value);await startScannerCamera()};
@@ -1314,7 +1398,7 @@ $("#switchCameraBtn").onclick=async()=>{if(!availableCameras.length)return;activ
 $("#torchBtn").onclick=toggleTorch;
 $("#applyManualScan").onclick=async()=>{const v=$("#manualScanValue").value.trim();if(v&&activeScanTarget){applyScannedCode(v,activeScanTarget);await closeScanner()}};
 $("#closeQrBtn").onclick=()=>$("#qrModal").classList.remove("open");
-$("#printQrBtn").onclick=()=>printSection("print-qr");
+$("#printQrBtn").onclick=()=>printSection("print-qr","portrait");
 setupUsbScanner();
 
 ["auditSearch","auditActionFilter","auditUserFilter","auditDateFrom","auditDateTo"].forEach(id=>{
@@ -1395,6 +1479,7 @@ if($("#reportPrevBtn"))$("#reportPrevBtn").onclick=()=>{if(reportPage>1){reportP
 if($("#reportNextBtn"))$("#reportNextBtn").onclick=()=>{const pages=Math.max(1,Math.ceil(filteredProducts(true).length/reportPageSize));if(reportPage<pages){reportPage++;renderReport();scrollPageTop("reports")}};
 if($("#reportLastBtn"))$("#reportLastBtn").onclick=()=>{reportPage=Math.max(1,Math.ceil(filteredProducts(true).length/reportPageSize));renderReport();scrollPageTop("reports")};
 $("#exportAuditBtn").onclick=exportAuditCsv;
+$("#clearAuditBtn")?.addEventListener("click",clearAuditLogsAsAdmin);
 $("#refreshAuditBtn").onclick=()=>{auditPage=1;refreshAll().catch(e=>toast(e.message))};
 $("#createBackupBtn").onclick=async()=>{if(!confirm("Create Google Drive backup now?"))return;try{toast("Creating backup...");await api("createBackup");await refreshAll();toast("Backup completed")}catch(err){toast(err.message)}};
 $("#downloadSnapshotBtn").onclick=downloadSnapshot;
@@ -1431,8 +1516,14 @@ window.addEventListener("DOMContentLoaded",async()=>{
   window.setTimeout(()=>{
     restoreSession().catch(err=>{
       console.error("Session restore failed:",err);
-      showLogin();
-      setText("#loginError",err?.message||"Session restore error");
+      if(sessionToken && currentUser){
+        applyRole();
+        showApp();
+        setText("#syncStatus","● Offline");
+      }else{
+        showLogin();
+        setText("#loginError",err?.message||"Session restore error");
+      }
     });
   },0);
 });
