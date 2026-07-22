@@ -1039,3 +1039,11 @@ body.auth-app{
 #productForm input[readonly]{cursor:not-allowed;background:var(--soft)}
 #productForm .barcode-auto-row.mode-manual{grid-template-columns:1fr}
 #productForm .barcode-auto-row.mode-manual>button{display:none!important}
+
+
+/* v7.2.1 — icons for existing Stock In / Stock Out fields (no new fields) */
+.stock-field-label{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-weight:700;color:var(--text,#172033)}
+.stock-field-label .ui-icon{width:18px;height:18px;color:var(--primary,#2563eb);flex:0 0 18px}
+.scan-box .stock-field-label{margin-bottom:8px}
+.stock-side-form textarea{resize:vertical}
+@media(max-width:600px){.stock-field-label{gap:7px}.stock-field-label .ui-icon{width:17px;height:17px}}

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SANLIAN Inventory v7.1 Stable</title>
-  <link rel="stylesheet" href="style.css?v=71499">
+  <title>SANLIAN Inventory v7.2.1 Icons</title>
+  <link rel="stylesheet" href="style.css?v=72110">
 
 <link rel="icon" href="icons/icon-64.png">
 
@@ -37,6 +37,12 @@
 <symbol id="switch-camera" viewBox="0 0 24 24"><path d="M4 7h3l2-3h6l2 3h3v13H4Z"/><path d="m9 12-2 2 2 2M15 12l2 2-2 2"/></symbol>
 <symbol id="zap" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 9-12h-7Z"/></symbol>
 <symbol id="lock" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="barcode" viewBox="0 0 24 24"><path d="M3 5v14M6 5v14M10 5v14M13 5v14M18 5v14M21 5v14"/><path d="M8 5v14M16 5v14"/></symbol>
+<symbol id="tag" viewBox="0 0 24 24"><path d="M20 13 11 22 2 13V2h11Z"/><circle cx="7.5" cy="7.5" r="1.5"/></symbol>
+<symbol id="hash" viewBox="0 0 24 24"><path d="M10 3 8 21M16 3l-2 18M4 9h16M3 15h16"/></symbol>
+<symbol id="list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3" cy="6" r="1"/><circle cx="3" cy="12" r="1"/><circle cx="3" cy="18" r="1"/></symbol>
+<symbol id="message-square" viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4Z"/></symbol>
+<symbol id="rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></symbol>
 
 </svg>
 
@@ -49,7 +55,7 @@
   <div class="login-card">
     <div class="login-brand">
       <div class="brand-logo large">S</div>
-      <div><h1>SANLIAN Inventory</h1><p>ລະບົບຈັດກາອຸປະກອນ</p></div>
+      <div><h1>ຮ້ານພີມປ້າຍຊານນີ</h1><p>ລະບົບຈັດການອຸປະກອນ</p></div>
     </div>
     <form id="loginForm" autocomplete="off">
       <label class="label-with-icon login-field">
@@ -92,7 +98,7 @@
       <button class="nav-item" data-page="reports" data-roles="Admin,Warehouse,Manager,Viewer"><svg class="ui-icon" aria-hidden="true"><use href="#chart"></use></svg><span>ລາຍງານ</span></button>
       <p class="nav-label">System</p>
       <button class="nav-item" data-page="users" data-roles="Admin,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#users"></use></svg><span>ຜູ້ໃຊ້ລະບົບ</span></button>
-      <button class="nav-item" data-page="audit" data-roles="Admin,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#clipboard"></use></svg><span>Audit Log</span></button>
+      <button class="nav-item" data-page="audit" data-roles="Admin"><svg class="ui-icon" aria-hidden="true"><use href="#clipboard"></use></svg><span>Audit Log</span></button>
       <button class="nav-item" data-page="backup" data-roles="Admin"><svg class="ui-icon" aria-hidden="true"><use href="#database"></use></svg><span>Backup</span></button>
     </nav>
   </aside>
@@ -194,7 +200,7 @@
           <div class="panel stock-form-panel">
             <div class="panel-head"><h2>ແບບຟອມ 表单</h2></div>
             <div class="scan-box">
-              <label>ຍິງ Barcode
+              <label><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#barcode"></use></svg><span>ຍິງ Barcode</span></span>
                 <div class="scanner-input-row">
                   <input id="inBarcode" placeholder="ສະແກນ ຫຼືພິມ Barcode ແລ້ວ Enter">
                   <button type="button" class="secondary camera-scan-btn" data-scan-target="inBarcode"><svg class="ui-icon" aria-hidden="true"><use href="#camera"></use></svg><span>Camera</span></button>
@@ -202,12 +208,12 @@
               </label>
             </div>
             <form id="stockInForm" class="form-grid stock-side-form">
-              <label class="full">ໝວດໝູ່ 类别<select name="category" required></select></label>
-              <label class="full">ອຸປະກອນ 设备<select name="productId" required></select></label>
-              <label class="full">ລະຫັດອຸປະກອນ 设备编号<input name="sku" readonly></label>
-              <label class="full">ຈຳນວນນຳເຂົ້າ 入库数量<input name="qty" type="number" min="1" placeholder="ປ້ອນຈຳນວນ" required></label>
-              <label class="full">ໝາຍເຫດ 备注<textarea name="note" rows="3"></textarea></label>
-              <div class="form-actions full"><button type="reset" class="secondary">ລ້າງຟອມ</button><button class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#save"></use></svg><span>ບັນທຶກ</span></button></div>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#folder"></use></svg><span>ໝວດໝູ່ 类别</span></span><select name="category" required></select></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#package"></use></svg><span>ອຸປະກອນ 设备</span></span><select name="productId" required></select></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#hash"></use></svg><span>ລະຫັດອຸປະກອນ 设备编号</span></span><input name="sku" readonly></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#log-in"></use></svg><span>ຈຳນວນນຳເຂົ້າ 入库数量</span></span><input name="qty" type="number" min="1" placeholder="ປ້ອນຈຳນວນ" required></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#message-square"></use></svg><span>ໝາຍເຫດ 备注</span></span><textarea name="note" rows="3"></textarea></label>
+              <div class="form-actions full"><button type="reset" class="secondary"><svg class="ui-icon" aria-hidden="true"><use href="#rotate-ccw"></use></svg><span>ລ້າງຟອມ</span></button><button class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#save"></use></svg><span>ບັນທຶກ</span></button></div>
             </form>
           </div>
           <div class="panel stock-history-panel">
@@ -242,7 +248,7 @@
           <div class="panel stock-form-panel">
             <div class="panel-head"><h2>ແບບຟອມ</h2></div>
             <div class="scan-box">
-              <label>ຍິງ Barcode
+              <label><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#barcode"></use></svg><span>ຍິງ Barcode</span></span>
                 <div class="scanner-input-row">
                   <input id="outBarcode" placeholder="ສະແກນ ຫຼືພິມ Barcode ແລ້ວ Enter">
                   <button type="button" class="secondary camera-scan-btn" data-scan-target="outBarcode"><svg class="ui-icon" aria-hidden="true"><use href="#camera"></use></svg><span>Camera</span></button>
@@ -250,12 +256,12 @@
               </label>
             </div>
             <form id="stockOutForm" class="form-grid stock-side-form">
-              <label class="full">ໝວດໝູ່ 类别<select name="category" required></select></label>
-              <label class="full">ອຸປະກອນ 设备<select name="productId" required></select></label>
-              <label class="full">ລະຫັດອຸປະກອນ 设备编号<input name="sku" readonly></label>
-              <label class="full">ຈຳນວນເບີກ 领用数量<input name="qty" type="number" min="1" placeholder="ປ້ອນຈຳນວນ" required></label>
-              <label class="full">ໝາຍເຫດ 备注<textarea name="note" rows="3"></textarea></label>
-              <div class="form-actions full"><button type="reset" class="secondary">ລ້າງຟອມ 重置表单</button><button class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#save"></use></svg><span>ບັນທຶກ</span></button></div>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#folder"></use></svg><span>ໝວດໝູ່ 类别</span></span><select name="category" required></select></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#package"></use></svg><span>ອຸປະກອນ 设备</span></span><select name="productId" required></select></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#hash"></use></svg><span>ລະຫັດອຸປະກອນ 设备编号</span></span><input name="sku" readonly></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#log-out"></use></svg><span>ຈຳນວນເບີກ 领用数量</span></span><input name="qty" type="number" min="1" placeholder="ປ້ອນຈຳນວນ" required></label>
+              <label class="full"><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#message-square"></use></svg><span>ໝາຍເຫດ 备注</span></span><textarea name="note" rows="3"></textarea></label>
+              <div class="form-actions full"><button type="reset" class="secondary"><svg class="ui-icon" aria-hidden="true"><use href="#rotate-ccw"></use></svg><span>ລ້າງຟອມ 重置表单</span></button><button class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#save"></use></svg><span>ບັນທຶກ</span></button></div>
             </form>
           </div>
           <div class="panel stock-history-panel">
@@ -412,6 +418,7 @@
         <div class="page-head">
           <div><h1>Backup & Restore</h1><p>ສຳຮອງ Google Sheets ແລະດາວໂຫຼດ Snapshot</p></div>
           <div class="head-actions">
+            <button id="archiveMonthlyBtn" class="secondary" data-roles="Admin"><span>📦 Archive Monthly Transactions</span></button>
             <button id="createBackupBtn" class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#database"></use></svg><span>Create Backup</span></button>
             <button id="downloadSnapshotBtn" class="secondary"><svg class="ui-icon" aria-hidden="true"><use href="#download"></use></svg><span>Download JSON</span></button>
           </div>
@@ -567,7 +574,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="config.js?v=2.2.0"></script>
-<script src="app.js?v=71499"></script>
+<script src="app.js?v=72001"></script>
 
 <div id="auditDetailModal" class="modal audit-detail-modal" aria-hidden="true">
   <div class="modal-card audit-detail-card">

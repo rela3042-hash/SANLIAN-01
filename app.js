@@ -856,6 +856,10 @@ function openAuditDetail(index){
  const modal=$("#auditDetailModal");modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");
 }
 function renderAudit(){
+ if(String(currentUser?.role||"")!=="Admin"){
+   if($("#auditBody")) $("#auditBody").innerHTML='<tr><td colspan="7" class="empty-cell">Admin only</td></tr>';
+   return;
+ }
  const rows=state.auditLogs||[],actions=[...new Set(rows.map(x=>x.action).filter(Boolean))],users=[...new Set(rows.map(x=>x.username).filter(Boolean))];
  if($("#auditActionFilter")){const v=$("#auditActionFilter").value;$("#auditActionFilter").innerHTML='<option value="">ທຸກ Action</option>'+actions.map(x=>`<option>${x}</option>`).join("");$("#auditActionFilter").value=v}
  if($("#auditUserFilter")){const v=$("#auditUserFilter").value;$("#auditUserFilter").innerHTML='<option value="">ທຸກ User</option>'+users.map(x=>`<option>${x}</option>`).join("");$("#auditUserFilter").value=v}
@@ -909,6 +913,34 @@ function exportAuditCsv(){
  const list=auditFiltered(),rows=[["created_at","username","role","action","entity_type","entity_id","details"],...list.map(x=>[x.created_at,x.username,x.role,x.action,x.entity_type,x.entity_id,x.details])];
  const csv="\uFEFF"+rows.map(r=>r.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(",")).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));a.download="audit-log.csv";a.click()
 }
+async function archiveMonthlyTransactions(){
+  const role=String(currentUser?.role||currentUser?.user?.role||"").toLowerCase();
+  if(role!=="admin"){
+    toast("ສະເພາະ Admin ເທົ່ານັ້ນ");
+    return;
+  }
+  const ok=confirm(
+    "📦 Archive ຂໍ້ມູນ Stock In / Stock Out / Movements ຂອງເດືອນທີ່ຜ່ານມາ?\n\n"+
+    "• ລະບົບຈະ Backup Spreadsheet ກ່ອນ\n"+
+    "• ຂໍ້ມູນເດືອນປັດຈຸບັນຈະບໍ່ຖືກລຶບ\n"+
+    "• ຍອດ Products.stock_qty ຈະບໍ່ປ່ຽນ"
+  );
+  if(!ok)return;
+  const button=$("#archiveMonthlyBtn");
+  if(button)button.disabled=true;
+  try{
+    toast("ກຳລັງ Backup ແລະ Archive...");
+    const result=await api("archiveMonthlyTransactions",{confirm:"ARCHIVE"});
+    await refreshAll();
+    const total=Number(result?.total_archived||0);
+    toast(`Archive ສຳເລັດ ${total} ລາຍການ`);
+  }catch(err){
+    toast(err?.message||"Archive ບໍ່ສຳເລັດ");
+  }finally{
+    if(button)button.disabled=false;
+  }
+}
+
 function downloadSnapshot(){
  const data={exported_at:new Date().toISOString(),products:state.products,categories:state.categories,stockIn:state.stockIn,stockOut:state.stockOut,movements:state.movements};
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download=`signshop-snapshot-${new Date().toISOString().slice(0,10)}.json`;a.click()
@@ -1530,6 +1562,7 @@ if($("#reportLastBtn"))$("#reportLastBtn").onclick=()=>{reportPage=Math.max(1,Ma
 $("#exportAuditBtn").onclick=exportAuditCsv;
 $("#clearAuditBtn")?.addEventListener("click",clearAuditLogsAsAdmin);
 $("#refreshAuditBtn").onclick=()=>{auditPage=1;refreshAll().catch(e=>toast(e.message))};
+$("#archiveMonthlyBtn")?.addEventListener("click",archiveMonthlyTransactions);
 $("#createBackupBtn").onclick=async()=>{if(!confirm("Create Google Drive backup now?"))return;try{toast("Creating backup...");await api("createBackup");await refreshAll();toast("Backup completed")}catch(err){toast(err.message)}};
 $("#downloadSnapshotBtn").onclick=downloadSnapshot;
 
