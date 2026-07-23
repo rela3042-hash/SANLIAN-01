@@ -583,8 +583,9 @@ function paintPagination(prefix,current,totalItems,pageSize=PAGE_SIZE){
 function renderReport(){
  const list=filteredProducts(true),ins=state.stockIn.filter(r=>reportPeriodMatch(r.transaction_time)),outs=state.stockOut.filter(r=>reportPeriodMatch(r.transaction_time)),sum=(rows,id)=>rows.filter(r=>String(r.product_id)===String(id)).reduce((s,r)=>s+Number(r.quantity||0),0);
  const totalPages=Math.max(1,Math.ceil(list.length/reportPageSize));reportPage=Math.min(Math.max(1,reportPage),totalPages);
- const pageRows=list.slice((reportPage-1)*reportPageSize,reportPage*reportPageSize);
- $("#reportBody").innerHTML=pageRows.length?pageRows.map(p=>`<tr><td>${safeValue(p.barcode)}</td><td>${safeValue(categoryName(p.category_id))}</td><td>${safeValue(p.product_name)}</td><td>${safeValue(p.sku)}</td><td>${safeValue(p.note)}</td><td>${safeValue(p.unit)}</td><td>${Number(p.stock_qty||0)}</td><td>${Number(p.minimum_stock||0)}</td><td>${sum(ins,p.product_id)}</td><td>${sum(outs,p.product_id)}</td><td><span class="badge ${statusOf(p)}">${statusOf(p)==="out"?"ໝົດ":statusOf(p)==="low"?"ໃກ້ໝົດ":"ປົກກະຕິ"}</span></td></tr>`).join(""):'<tr><td colspan="11" class="empty-cell">ບໍ່ພົບຂໍ້ມູນ</td></tr>';
+ const reportStartIndex=(reportPage-1)*reportPageSize;
+ const pageRows=list.slice(reportStartIndex,reportStartIndex+reportPageSize);
+ $("#reportBody").innerHTML=pageRows.length?pageRows.map((p,i)=>`<tr><td>${reportStartIndex+i+1}</td><td>${safeValue(p.barcode)}</td><td>${safeValue(categoryName(p.category_id))}</td><td>${safeValue(p.product_name)}</td><td>${safeValue(p.sku)}</td><td>${safeValue(p.note)}</td><td>${safeValue(p.unit)}</td><td>${Number(p.stock_qty||0)}</td><td>${Number(p.minimum_stock||0)}</td><td>${sum(ins,p.product_id)}</td><td>${sum(outs,p.product_id)}</td><td><span class="badge ${statusOf(p)}">${statusOf(p)==="out"?"ໝົດ / 缺货":statusOf(p)==="low"?"ໃກ້ໝົດ / 库存紧张":"ປົກກະຕິ / 正常"}</span></td></tr>`).join(""):'<tr><td colspan="12" class="empty-cell">ບໍ່ພົບຂໍ້ມູນ / 无数据</td></tr>';
  paintPagination('report',reportPage,list.length,reportPageSize);
  const stock=list.reduce((s,p)=>s+Number(p.stock_qty||0),0);
  const tin=ins.reduce((s,r)=>s+Number(r.quantity||0),0);
@@ -1441,7 +1442,18 @@ function setPrintOrientation(orientation){
   return value;
 }
 
+function updatePrintHeader(){
+  const now=new Date();
+  const user=currentUser?.display_name||currentUser?.username||"-";
+  const date=now.toLocaleDateString("lo-LA",{year:"numeric",month:"2-digit",day:"2-digit"});
+  const time=now.toLocaleTimeString("lo-LA",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  document.querySelectorAll("[data-print-user]").forEach(el=>el.textContent=user);
+  document.querySelectorAll("[data-print-date]").forEach(el=>el.textContent=date);
+  document.querySelectorAll("[data-print-time]").forEach(el=>el.textContent=time);
+}
+
 function printSection(mode,orientation="portrait"){
+  updatePrintHeader();
   const selected=setPrintOrientation(orientation);
   document.body.classList.remove("print-products","print-report","print-qr","print-portrait","print-landscape");
   document.body.classList.add(mode,selected==="landscape"?"print-landscape":"print-portrait");

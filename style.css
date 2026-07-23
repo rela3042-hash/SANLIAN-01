@@ -1047,3 +1047,139 @@ body.auth-app{
 .scan-box .stock-field-label{margin-bottom:8px}
 .stock-side-form textarea{resize:vertical}
 @media(max-width:600px){.stock-field-label{gap:7px}.stock-field-label .ui-icon{width:17px;height:17px}}
+
+/* v7.2.1 SANLIAN official logo — Login, Sidebar, Top bar and Browser tab */
+.brand-logo-img{
+  display:block;
+  object-fit:contain;
+  flex:0 0 auto;
+}
+.login-logo-img{
+  width:82px;
+  height:82px;
+  padding:5px;
+  border-radius:16px;
+  background:#fff;
+}
+.sidebar-logo-img{
+  width:48px;
+  height:48px;
+  padding:3px;
+  border-radius:12px;
+  background:#fff;
+}
+.topbar-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  flex:1;
+}
+.topbar-logo-img{
+  width:42px;
+  height:42px;
+  object-fit:contain;
+  flex:0 0 auto;
+}
+.topbar-left .global-search{
+  flex:1;
+}
+@media(max-width:800px){
+  .topbar-logo-img{width:36px;height:36px}
+  .topbar-left{gap:8px}
+}
+@media(max-width:520px){
+  .topbar-logo-img{width:32px;height:32px}
+  .global-search{padding:8px 9px}
+}
+
+
+/* v7.2.1 — Lao/Chinese professional A4 print layout */
+.print-company-header{display:none}
+@media print{
+  .print-company-header{
+    display:block!important;
+    text-align:center;
+    margin:0 0 12mm;
+    color:#111;
+    break-inside:avoid;
+  }
+  .print-company-logo{width:34mm;height:auto;display:block;margin:0 auto 3mm;object-fit:contain}
+  .print-company-name-lao{font-size:17pt;font-weight:800;line-height:1.35}
+  .print-company-name-cn{font-size:15pt;font-weight:700;letter-spacing:2px;margin-top:1mm}
+  .print-document-meta{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:6mm;
+    margin-top:10mm;
+    text-align:left;
+    font-size:10.5pt;
+  }
+  .print-document-meta>div:nth-child(2),.print-document-meta>div:nth-child(3){text-align:right}
+
+  body.print-products #productReportPanel table th:not(:nth-child(1)):not(:nth-child(4)):not(:nth-child(10)):not(:nth-child(8)):not(:nth-child(7)),
+  body.print-products #productReportPanel table td:not(:nth-child(1)):not(:nth-child(4)):not(:nth-child(10)):not(:nth-child(8)):not(:nth-child(7)){
+    display:none!important;
+  }
+  body.print-report #reportPanel table th:not(:nth-child(1)):not(:nth-child(4)):not(:nth-child(12)):not(:nth-child(8)):not(:nth-child(7)),
+  body.print-report #reportPanel table td:not(:nth-child(1)):not(:nth-child(4)):not(:nth-child(12)):not(:nth-child(8)):not(:nth-child(7)){
+    display:none!important;
+  }
+  body.print-products #productReportPanel thead th:nth-child(1)::after,
+  body.print-report #reportPanel thead th:nth-child(1)::after{content:"ລ/ດ / 序号"}
+  body.print-products #productReportPanel thead th:nth-child(4)::after,
+  body.print-report #reportPanel thead th:nth-child(4)::after{content:"ຊື່ສິນຄ້າ / 商品名称"}
+  body.print-products #productReportPanel thead th:nth-child(10)::after,
+  body.print-report #reportPanel thead th:nth-child(12)::after{content:"ສະຖານະ / 状态"}
+  body.print-products #productReportPanel thead th:nth-child(8)::after,
+  body.print-report #reportPanel thead th:nth-child(8)::after{content:"ຈຳນວນ / 数量"}
+  body.print-products #productReportPanel thead th:nth-child(7)::after,
+  body.print-report #reportPanel thead th:nth-child(7)::after{content:"ໜ່ວຍ / 单位"}
+  body.print-products #productReportPanel thead th:nth-child(1),
+  body.print-products #productReportPanel thead th:nth-child(4),
+  body.print-products #productReportPanel thead th:nth-child(10),
+  body.print-products #productReportPanel thead th:nth-child(8),
+  body.print-products #productReportPanel thead th:nth-child(7),
+  body.print-report #reportPanel thead th:nth-child(1),
+  body.print-report #reportPanel thead th:nth-child(4),
+  body.print-report #reportPanel thead th:nth-child(12),
+  body.print-report #reportPanel thead th:nth-child(8),
+  body.print-report #reportPanel thead th:nth-child(7){font-size:0!important}
+  body.print-products #productReportPanel thead th::after,
+  body.print-report #reportPanel thead th::after{font-size:10.5pt!important}
+
+  body.print-products #productReportPanel table,
+  body.print-report #reportPanel table{width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+  body.print-products #productReportPanel th,
+  body.print-products #productReportPanel td,
+  body.print-report #reportPanel th,
+  body.print-report #reportPanel td{
+    border:1px solid #111!important;
+    padding:7px 6px!important;
+    font-size:10pt!important;
+    vertical-align:middle!important;
+    color:#111!important;
+    background:#fff!important;
+  }
+  body.print-products #productReportPanel th,
+  body.print-report #reportPanel th{font-weight:800!important;text-align:center!important;background:#f3f4f6!important}
+  body.print-products #productReportPanel td:nth-child(1),
+  body.print-products #productReportPanel td:nth-child(7),
+  body.print-products #productReportPanel td:nth-child(8),
+  body.print-products #productReportPanel td:nth-child(10),
+  body.print-report #reportPanel td:nth-child(1),
+  body.print-report #reportPanel td:nth-child(7),
+  body.print-report #reportPanel td:nth-child(8),
+  body.print-report #reportPanel td:nth-child(12){text-align:center!important}
+  body.print-products #productReportPanel th:nth-child(1),body.print-products #productReportPanel td:nth-child(1),
+  body.print-report #reportPanel th:nth-child(1),body.print-report #reportPanel td:nth-child(1){width:8%!important}
+  body.print-products #productReportPanel th:nth-child(4),body.print-products #productReportPanel td:nth-child(4),
+  body.print-report #reportPanel th:nth-child(4),body.print-report #reportPanel td:nth-child(4){width:46%!important;text-align:left!important}
+  body.print-products #productReportPanel th:nth-child(10),body.print-products #productReportPanel td:nth-child(10),
+  body.print-report #reportPanel th:nth-child(12),body.print-report #reportPanel td:nth-child(12){width:18%!important}
+  body.print-products #productReportPanel th:nth-child(8),body.print-products #productReportPanel td:nth-child(8),
+  body.print-report #reportPanel th:nth-child(8),body.print-report #reportPanel td:nth-child(8){width:14%!important}
+  body.print-products #productReportPanel th:nth-child(7),body.print-products #productReportPanel td:nth-child(7),
+  body.print-report #reportPanel th:nth-child(7),body.print-report #reportPanel td:nth-child(7){width:14%!important}
+  .badge{border:0!important;background:transparent!important;color:#111!important;padding:0!important;font-weight:400!important}
+}

@@ -6,7 +6,8 @@
   <title>SANLIAN Inventory v7.2.1 Icons</title>
   <link rel="stylesheet" href="style.css?v=72110">
 
-<link rel="icon" href="icons/icon-64.png">
+<link rel="icon" type="image/png" sizes="64x64" href="icons/icon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 
 
 
@@ -54,7 +55,7 @@
 <section id="loginView" class="login-view" hidden aria-hidden="true">
   <div class="login-card">
     <div class="login-brand">
-      <div class="brand-logo large">S</div>
+      <img src="assets/sanlian-logo.png" class="brand-logo-img login-logo-img" alt="SANLIAN Logo">
       <div><h1>ຮ້ານພີມປ້າຍຊານນີ</h1><p>ລະບົບຈັດການອຸປະກອນ</p></div>
     </div>
     <form id="loginForm" autocomplete="off">
@@ -79,14 +80,14 @@
       Username: <code>admin</code><br>
       Password: <code>admin123</code> -->
     </div>
-    <div id="buildVersion" style="text-align:center;font-size:12px;color:#6b7280;margin-top:10px">Version 7.1.4<br><span id="backendVersion">Backend: checking...</span></div>
+    <div id="buildVersion" style="text-align:center;font-size:12px;color:#6b7280;margin-top:10px">Version 7.2.1<br><span id="backendVersion">Backend: checking...</span></div>
 <div id="loginError" class="login-error"></div>
   </div>
 </section>
 
 <div id="appView" class="app-shell" hidden aria-hidden="true">
   <aside class="sidebar">
-    <div class="brand"><div class="brand-logo">S</div><div><strong>SANLIAN Inventory</strong><small id="shopNameSide">Inventory Management</small></div></div>
+    <div class="brand"><img src="assets/sanlian-logo.png" class="brand-logo-img sidebar-logo-img" alt="SANLIAN Logo"><div><strong>ຮ້ານພີມປ້າຍຊານນີ</strong><small id="shopNameSide">ລະບົບຈັດການອຸປະກອນ</small></div></div>
     <nav>
       <p class="nav-label">Overview</p>
       <button class="nav-item active" data-page="dashboard" data-roles="Admin,Warehouse,Manager,Viewer"><svg class="ui-icon" aria-hidden="true"><use href="#home"></use></svg><span>ໜ້າຫຼັກ</span></button>
@@ -105,7 +106,7 @@
 
   <section class="main-area">
     <header class="topbar">
-      <div class="global-search">🔎 <input id="globalSearch" placeholder="ຄົ້ນຫາ Barcode, SKU, ອຸປະກອນ..."></div>
+      <div class="topbar-left"><img src="assets/sanlian-logo.png" class="topbar-logo-img" alt="SANLIAN Logo"><div class="global-search">🔎 <input id="globalSearch" placeholder="ຄົ້ນຫາ Barcode, SKU, ອຸປະກອນ..."></div></div>
       <div class="top-actions">
 
         <span id="syncStatus" class="sync-status">● Online</span>
@@ -160,6 +161,16 @@
         </div>
         <div id="productMetrics" class="metric-grid"></div>
         <div class="panel" id="productReportPanel">
+          <div class="print-company-header" aria-hidden="true">
+            <img src="assets/sanlian-logo.png" alt="SANLIAN Logo" class="print-company-logo">
+            <div class="print-company-name-lao">ຮ້ານ ພິມປ້າຍ ຊານລຽນ ສື່ສິ່ງພິມ</div>
+            <div class="print-company-name-cn">三联广告装饰公司</div>
+            <div class="print-document-meta">
+              <div><strong>ພະນັກງານ / 员工:</strong> <span data-print-user>-</span></div>
+              <div><strong>ວັນທີ / 日期:</strong> <span data-print-date>-</span></div>
+              <div><strong>ເວລາ / 时间:</strong> <span data-print-time>-</span></div>
+            </div>
+          </div>
           <div class="toolbar product-toolbar">
             <input id="productSearch" placeholder="ຄົ້ນຫາ Barcode, SKU, ຊື່">
             <select id="productCategoryFilter"><option value="">ທຸກໝວດໝູ່ 所有类别</option></select>
@@ -328,6 +339,16 @@
 <button id="printReportLandscape" class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#printer"></use></svg><span>A4 ແນວນອນ</span></button></div>
         </div>
         <div class="panel" id="reportPanel">
+          <div class="print-company-header" aria-hidden="true">
+            <img src="assets/sanlian-logo.png" alt="SANLIAN Logo" class="print-company-logo">
+            <div class="print-company-name-lao">ຮ້ານ ພິມປ້າຍ ຊານລຽນ ສື່ສິ່ງພິມ</div>
+            <div class="print-company-name-cn">三联广告装饰公司</div>
+            <div class="print-document-meta">
+              <div><strong>ພະນັກງານ / 员工:</strong> <span data-print-user>-</span></div>
+              <div><strong>ວັນທີ / 日期:</strong> <span data-print-date>-</span></div>
+              <div><strong>ເວລາ / 时间:</strong> <span data-print-time>-</span></div>
+            </div>
+          </div>
           <div class="report-toolbar">
             <select id="reportCategory"><option value="">ທຸກໝວດໝູ່ 所有类别</option></select>
             <select id="reportStatus"><option value="">ທຸກສະຖານະ 所有状态</option><option value="normal">ປົກກະຕິ 正常</option><option value="low">ໃກ້ໝົດ 快用完</option><option value="out">ໝົດ 缺货</option></select>
@@ -344,7 +365,7 @@
           </div>
           <div id="reportCards" class="metric-grid"></div>
           <div class="table-wrap"><table>
-            <thead><tr><th>Barcode</th><th>ໝວດໝູ່ 分类</th><th>ຊື່ອຸປະກອນ 设备名称</th><th>ລະຫັດເຄື່ອງ 设备编号</th><th>ໝາຍເຫດ 备注</th><th>ໝວດໝູ່ 类别</th><th>ຈຳນວນຄົງເຫຼືອ 剩余数量</th><th>ຈຸດຕຳສຸດ ຂັ້ນຕ່ຳ 最小</th><th>ນຳເຂົ້າ 入库</th><th>ເບີກອອກ 出库</th><th>ສະຖານະ 状态</th></tr></thead>
+            <thead><tr><th>ລ/ດ 序号</th><th>Barcode</th><th>ໝວດໝູ່ 分类</th><th>ຊື່ອຸປະກອນ 设备名称</th><th>ລະຫັດເຄື່ອງ 设备编号</th><th>ໝາຍເຫດ 备注</th><th>ໜ່ວຍ 单位</th><th>ຈຳນວນຄົງເຫຼືອ 剩余数量</th><th>ຈຸດຕ່ຳສຸດ 最小库存</th><th>ນຳເຂົ້າ 入库</th><th>ເບີກອອກ 出库</th><th>ສະຖານະ 状态</th></tr></thead>
             <tbody id="reportBody"></tbody>
           </table></div>
           <div class="data-pagination" id="reportPagination">
