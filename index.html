@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SANLIAN Inventory v7.2.1 Icons</title>
-  <link rel="stylesheet" href="style.css?v=72110">
+  <title>SANLIAN Inventory v7.5 Stock Count</title>
+  <link rel="stylesheet" href="style.css?v=83000">
 
 <link rel="icon" href="icon-64.png">
 
@@ -57,6 +57,10 @@
       <img class="brand-logo-img brand-logo-login" src="logo.png" alt="SANLIAN Logo">
       <div><h1>ຮ້ານພິມປ້າຍຊານລຽນ</h1><p>ລະບົບຈັດການອຸປະກອນ</p></div>
     </div>
+    <div class="language-switcher language-switcher-login" aria-label="Language">
+      <button type="button" class="language-button" data-language="lo">ລາວ</button>
+      <button type="button" class="language-button" data-language="zh">中文</button>
+    </div>
     <form id="loginForm" autocomplete="off">
       <label class="label-with-icon login-field">
         <span>Username</span>
@@ -79,7 +83,7 @@
       Username: <code>admin</code><br>
       Password: <code>admin123</code> -->
     </div>
-    <div id="buildVersion" style="text-align:center;font-size:12px;color:#6b7280;margin-top:10px">Version 7.2.1<br><span id="backendVersion">Backend: checking...</span></div>
+    <div id="buildVersion" style="text-align:center;font-size:12px;color:#6b7280;margin-top:10px">Version 8.5.0<br><span id="backendVersion">Backend: checking...</span></div>
 <div id="loginError" class="login-error"></div>
   </div>
 </section>
@@ -94,6 +98,7 @@
       <button class="nav-item" data-page="products" data-roles="Admin,Warehouse,Manager,Viewer"><svg class="ui-icon" aria-hidden="true"><use href="#package"></use></svg><span>ສິນຄ້າ</span></button>
       <button class="nav-item" data-page="stock-in" data-roles="Admin,Warehouse,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#log-in"></use></svg><span>ນຳເຂົ້າ</span></button>
       <button class="nav-item" data-page="stock-out" data-roles="Admin,Warehouse,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#log-out"></use></svg><span>ເບີກອອກ</span></button>
+      <button class="nav-item" data-page="stock-count" data-roles="Admin,Warehouse,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#clipboard"></use></svg><span>ກວດສະຕ໋ອກ</span></button>
       <button class="nav-item" data-page="categories" data-roles="Admin,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#folder"></use></svg><span>ໝວດໝູ່</span></button>
       <button class="nav-item" data-page="reports" data-roles="Admin,Warehouse,Manager,Viewer"><svg class="ui-icon" aria-hidden="true"><use href="#chart"></use></svg><span>ລາຍງານ</span></button>
       <p class="nav-label">System</p>
@@ -107,6 +112,10 @@
     <header class="topbar">
       <div class="global-search">🔎 <input id="globalSearch" placeholder="ຄົ້ນຫາ Barcode, SKU, ອຸປະກອນ..."></div>
       <div class="top-actions">
+        <div class="language-switcher language-switcher-top" aria-label="Language">
+          <button type="button" class="language-button" data-language="lo">ລາວ</button>
+          <button type="button" class="language-button" data-language="zh">中文</button>
+        </div>
 
         <span id="syncStatus" class="sync-status">● Online</span>
         <button id="syncBtn" class="icon-button" title="Sync"><svg class="ui-icon" aria-hidden="true"><use href="#refresh"></use></svg></button>
@@ -124,6 +133,7 @@
       <button data-page-link="products"><svg class="ui-icon" aria-hidden="true"><use href="#package"></use></svg><span>ເຄື່ອງ-ອຸປະກອນ 设备与工具</span></button>
       <button data-page-link="stock-in" data-roles="Admin,Warehouse,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#log-in"></use></svg><span>ນຳເຂົ້າ 入库</span></button>
       <button data-page-link="stock-out" data-roles="Admin,Warehouse,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#log-out"></use></svg><span>ເບີກອອກ 出库</span></button>
+      <button data-page-link="stock-count" data-roles="Admin,Warehouse,Manager"><svg class="ui-icon" aria-hidden="true"><use href="#clipboard"></use></svg><span>ກວດສະຕ໋ອກ 库存盘点</span></button>
       <button data-page-link="reports"><svg class="ui-icon" aria-hidden="true"><use href="#chart"></use></svg><span>ລາຍງານ 报告</span></button>
     </div>
 
@@ -141,7 +151,7 @@
         <div id="dashboardMetrics" class="metric-grid metric-grid-6"></div>
         <div class="analytics-grid">
           <div class="panel chart-panel"><div class="panel-head"><h2>ນຳເຂົ້າ - ເບີກອອກ ລາຍວັນ 每日出入库</h2></div><canvas id="movementTrendChart"></canvas></div>
-          <div class="panel chart-panel"><div class="panel-head"><h2>ສະຕ໋ອກຕາມໝວດໝູ່ 按类别库存</h2></div><canvas id="categoryStockChart"></canvas></div>
+          <div class="panel chart-panel category-stock-panel"><div class="panel-head"><h2>ສະຕ໋ອກຕາມໝວດໝູ່ 按类别库存</h2></div><div class="category-chart-shell"><canvas id="categoryStockChart"></canvas><div id="categoryStockInfo" class="category-chart-info" aria-live="polite"><div class="category-chart-hint">ກົດສີ / 点击色块</div><strong>ເບິ່ງລາຍລະອຽດ</strong><span>查看分类详情</span></div></div></div>
           <div class="panel chart-panel"><div class="panel-head"><h2>Top 10 ອຸປະກອນເບີກຫຼາຍ 出库前 10 名设备</h2></div><canvas id="topOutChart"></canvas></div>
           <div class="panel chart-panel"><div class="panel-head"><h2>Top 10 ອຸປະກອນນຳເຂົ້າ 入库前 10 名设备</h2></div><canvas id="topInChart"></canvas></div>
         </div>
@@ -184,7 +194,7 @@
             </label>
           </div>
           <div class="table-wrap"><table>
-            <thead><tr><th>#</th><th>Barcode</th><th>ໝວດໝູ່ 分类</th><th>ອຸປະກອນ 设备名称</th><th>ລະຫັດເຄື່ອງ 设备编号</th><th>ໝາຍເຫດ 备注</th><th>ຫົວໜ່ວຍ 单位</th><th>ສະຕ໋ອກ 库存</th><th>ຂັ້ນຕ່ຳ 最小</th><th>ສະຖານະ 状态</th><th>QR</th><th>ການດຳເນີນການ 操作</th></tr></thead>
+            <thead><tr><th>#</th><th>Barcode</th><th>ໝວດໝູ່ 分类</th><th>ອຸປະກອນ 设备名称</th><th>ລະຫັດເຄື່ອງ 设备编号</th><th>ໝາຍເຫດ 备注</th><th>ລາຄາ 价格</th><th>ສະຕ໋ອກ 库存</th><th>ສະຖານະ 状态</th><th>QR</th><th>ການດຳເນີນການ 操作</th></tr></thead>
             <tbody id="productBody"></tbody>
           </table></div>
           <div class="data-pagination" id="productPagination">
@@ -295,6 +305,35 @@
         </div>
       </section>
 
+      <section id="stock-count" class="page">
+        <div class="page-head"><div><h1>ກວດສະຕ໋ອກ</h1><p>ກວດຈຳນວນຈິງ ແລະ ປຽບທຽບກັບລະບົບ</p></div></div>
+        <div id="stockCountMetrics" class="metric-grid stock-count-metrics"></div>
+        <div class="stock-workspace stock-count-workspace">
+          <div class="panel stock-form-panel">
+            <div class="panel-head"><h2>ກວດສະຕ໋ອກ</h2><span id="stockCountStatusBadge" class="count-status-pill uncounted">ຍັງບໍ່ໄດ້ກວດ</span></div>
+            <div class="scan-box"><label><span class="stock-field-label"><svg class="ui-icon" aria-hidden="true"><use href="#barcode"></use></svg><span>ຍິງ Barcode</span></span><div class="scanner-input-row"><input id="countBarcode" placeholder="ສະແກນ ຫຼືພິມ Barcode ແລ້ວ Enter"><button type="button" class="secondary camera-scan-btn" data-scan-target="countBarcode"><svg class="ui-icon" aria-hidden="true"><use href="#camera"></use></svg><span>Camera</span></button></div></label></div>
+            <form id="stockCountForm" class="form-grid stock-side-form stock-count-form">
+              <label><span>ໝວດໝູ່</span><select name="category" required></select></label>
+              <label><span>ອຸປະກອນ</span><select name="productId" required></select></label>
+              <label><span>SKU</span><input name="sku" readonly></label>
+              <label><span>ຈຳນວນໃນລະບົບ</span><input name="systemQty" type="number" readonly></label>
+              <label><span>ຈຳນວນນັບຈິງ</span><input id="countActualQty" name="actualQty" type="number" min="0" step="1" placeholder="ປ້ອນຈຳນວນ" required></label>
+              <label><span>ສ່ວນຕ່າງ</span><input name="difference" readonly></label>
+              <label><span>ເຫດຜົນ</span><select name="reason"><option value="">ເລືອກເຫດຜົນ</option><option value="damaged">ສິນຄ້າເສຍຫາຍ</option><option value="lost">ສູນເສຍ/ຫາຍ</option><option value="unrecorded_in">ນຳເຂົ້າບໍ່ໄດ້ບັນທຶກ</option><option value="unrecorded_out">ເບີກອອກບໍ່ໄດ້ບັນທຶກ</option><option value="count_error">ນັບຜິດ</option><option value="other">ອື່ນໆ</option></select></label>
+              <label><span>ຜູ້ກວດ</span><input name="checker" readonly></label>
+              <label class="full stock-count-note"><span>ໝາຍເຫດ</span><textarea name="note" rows="2"></textarea></label>
+              <label class="full stock-count-time"><span>ວັນທີ/ເວລາ</span><input name="countTime" readonly></label>
+              <div class="form-actions full stock-count-actions"><button type="reset" class="secondary"><svg class="ui-icon" aria-hidden="true"><use href="#rotate-ccw"></use></svg><span>ລ້າງຟອມ</span></button><button type="button" id="stockCountCancelEditBtn" class="secondary" hidden><span>ຍົກເລີກແກ້ໄຂ</span></button><button type="submit" class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#save"></use></svg><span id="stockCountSubmitText">ບັນທຶກຜົນກວດ</span></button></div>
+            </form>
+          </div>
+          <div class="panel stock-history-panel">
+            <div class="panel-head stock-history-head"><h2>ປະຫວັດການກວດສະຕ໋ອກ</h2><button type="button" class="secondary" id="stockCountRefreshBtn"><svg class="ui-icon" aria-hidden="true"><use href="#refresh"></use></svg><span>Refresh</span></button></div>
+            <div class="stock-history-toolbar stock-count-toolbar"><input id="stockCountSearch" placeholder="ຄົ້ນຫາປະຫວັດກວດສະຕ໋ອກ..."></div>
+            <div class="table-wrap stock-history-table stock-count-table"><table><thead><tr><th>ວັນທີ/ເວລາ</th><th>Barcode</th><th>ອຸປະກອນ</th><th>SKU</th><th>ຈຳນວນໃນລະບົບ</th><th>ຈຳນວນນັບຈິງ</th><th>ສ່ວນຕ່າງ</th><th>ສະຖານະ</th><th>ເຫດຜົນ</th><th>ຜູ້ກວດ</th><th>ການດຳເນີນການ</th></tr></thead><tbody id="stockCountBody"></tbody></table></div>
+          </div>
+        </div>
+      </section>
+
       <section id="categories" class="page">
         <div class="page-head"><div><h1>ໝວດໝູ່ 类别</h1><p>ເພີ່ມ, ແກ້ໄຂຊື່ ຫຼືລຶບ 添加、修改名称或删除</p></div><button id="addCategoryBtn" class="primary"><svg class="ui-icon" aria-hidden="true"><use href="#plus"></use></svg><span>ເພີ່ມໝວດໝູ່</span></button></div>
         <div class="panel">
@@ -354,7 +393,7 @@
           </div>
           <div id="reportCards" class="metric-grid"></div>
           <div class="table-wrap"><table>
-            <thead><tr><th>Barcode</th><th>ໝວດໝູ່ 分类</th><th>ຊື່ອຸປະກອນ 设备名称</th><th>ລະຫັດເຄື່ອງ 设备编号</th><th>ໝາຍເຫດ 备注</th><th>ຫົວໜ່ວຍ 单位</th><th>ຈຳນວນຄົງເຫຼືອ 剩余数量</th><th>ຈຸດຕຳສຸດ ຂັ້ນຕ່ຳ 最小</th><th>ນຳເຂົ້າ 入库</th><th>ເບີກອອກ 出库</th><th>ສະຖານະ 状态</th></tr></thead>
+            <thead><tr><th>Barcode</th><th>ໝວດໝູ່ 分类</th><th>ຊື່ອຸປະກອນ 设备名称</th><th>ລະຫັດເຄື່ອງ 设备编号</th><th>ໝາຍເຫດ 备注</th><th>ລາຄາ 价格</th><th>ຫົວໜ່ວຍ 单位</th><th>ຈຳນວນຄົງເຫຼືອ 剩余数量</th><th>ຈຸດຕຳສຸດ ຂັ້ນຕ່ຳ 最小</th><th>ນຳເຂົ້າ 入库</th><th>ເບີກອອກ 出库</th><th>ສະຖານະ 状态</th></tr></thead>
             <tbody id="reportBody"></tbody>
           </table></div>
           <div class="data-pagination" id="reportPagination">
@@ -437,10 +476,10 @@
         <div class="panel">
           <div class="backup-info">
             <h2>ນະໂຍບາຍ Backup</h2>
-            <p>Backup ຈະສ້າງສຳເນົາ Spreadsheet ໄປທີ່ Google Drive ແລະບັນທຶກປະຫວັດໄວ້.</p>
+            <p>ລະບົບຈະ Backup ອັດຕະໂນມັດອາທິດລະ 1 ຄັ້ງ (ວັນອາທິດ ປະມານ 02:00), ແລະ Admin ສາມາດສ້າງ ຫຼື ລຶບ Backup ໄດ້ດ້ວຍຕົນເອງ.</p>
           </div>
           <div class="table-wrap"><table>
-            <thead><tr><th>Backup ID</th><th>ເວລາ</th><th>ຊື່ໄຟລ໌</th><th>ສະຖານະ</th><th>ຜູ້ສ້າງ</th><th>Drive File ID</th></tr></thead>
+            <thead><tr><th>Backup ID</th><th>ເວລາ</th><th>ຊື່ໄຟລ໌</th><th>ສະຖານະ</th><th>ຜູ້ສ້າງ</th><th>Drive File ID</th><th>ຈັດການ</th></tr></thead>
             <tbody id="backupBody"></tbody>
           </table></div>
         </div>
@@ -457,7 +496,7 @@
     <label>Username<input name="username" autocomplete="off" required></label>
     <label>Display Name<input name="display_name" required></label>
     <label>Password<input name="password" type="password" minlength="6" placeholder="ຢ່າງໜ້ອຍ 6 ຕົວ"></label>
-    <label>Role<select name="role" required><option>Viewer</option><option>Warehouse</option><option>Manager</option><option>Admin</option></select></label>
+    <label>Role<select name="role" required><option value="Viewer">Viewer</option><option value="Warehouse">Warehouse</option><option value="Manager">Manager</option><option value="Admin">Admin</option></select></label>
     <div class="form-actions full"><button type="button" class="secondary" data-close-user-modal>ຍົກເລີກ</button><button type="submit" class="primary" data-default-text="ບັນທຶກ">ບັນທຶກ</button></div>
   </form>
 </div></div>
@@ -531,6 +570,15 @@
       </div>
     </label>
 
+    <label class="product-field product-field-price">
+      <span class="field-label">ລາຄາ (ບໍ່ບັງຄັບ)</span>
+      <div class="product-input-icon">
+        <svg class="ui-icon" aria-hidden="true"><use href="#tag"></use></svg>
+        <input name="price" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00">
+      </div>
+      <small>ປ້ອນກໍໄດ້ ຫຼື ປ່ອຍວ່າງກໍໄດ້</small>
+    </label>
+
     <label class="product-field product-note-field full">
       <span class="field-label">ໝາຍເຫດ 备注</span>
       <div class="product-input-icon product-textarea-icon">
@@ -584,7 +632,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/html5-qrcode"></script>
 <script src="config.js?v=2.2.0"></script>
-<script src="app.js?v=72001"></script>
+<script src="app.js?v=83000"></script>
 
 <div id="auditDetailModal" class="modal audit-detail-modal" aria-hidden="true">
   <div class="modal-card audit-detail-card">
