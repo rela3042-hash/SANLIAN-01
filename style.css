@@ -749,17 +749,17 @@ label>.zh-sub+.zh-sub,.zh-sub~.zh-sub{display:none!important}
   .nav-item .nav-flat-icon{width:25px;height:25px}
 }
 
-/* v6.8.6 — Print only Category, Equipment, Remaining Stock and Status */
+/* v9.0 — Print only Category, Equipment, Stock and Status */
 @media print {
-  /* Product list: keep columns 3, 4, 8 and 10 only */
-  body.print-products #productReportPanel table th:not(:nth-child(3)):not(:nth-child(4)):not(:nth-child(8)):not(:nth-child(10)),
-  body.print-products #productReportPanel table td:not(:nth-child(3)):not(:nth-child(4)):not(:nth-child(8)):not(:nth-child(10)) {
+  /* Product list columns: 3=Category, 4=Equipment, 8=Stock, 9=Status */
+  body.print-products #productReportPanel table th:not(:nth-child(3)):not(:nth-child(4)):not(:nth-child(8)):not(:nth-child(9)),
+  body.print-products #productReportPanel table td:not(:nth-child(3)):not(:nth-child(4)):not(:nth-child(8)):not(:nth-child(9)) {
     display: none !important;
   }
 
-  /* Stock report: keep columns 2, 3, 7 and 11 only */
-  body.print-report #reportPanel table th:not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(7)):not(:nth-child(11)),
-  body.print-report #reportPanel table td:not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(7)):not(:nth-child(11)) {
+  /* Stock report columns: 2=Category, 3=Equipment, 8=Stock, 12=Status */
+  body.print-report #reportPanel table th:not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(8)):not(:nth-child(12)),
+  body.print-report #reportPanel table td:not(:nth-child(2)):not(:nth-child(3)):not(:nth-child(8)):not(:nth-child(12)) {
     display: none !important;
   }
 
@@ -1189,3 +1189,30 @@ body.dark .language-switcher{background:rgba(15,23,42,.72)}
 }
 @media (max-width:1180px) and (min-width:981px){.stock-count-workspace{grid-template-columns:minmax(410px,46%) minmax(0,54%)}}
 @media (max-width:980px){.stock-count-form{grid-template-columns:1fr!important}.stock-count-form>label,.stock-count-form>label.full{grid-column:1/-1!important}.count-action-group{flex-wrap:wrap}}
+
+
+/* v9.0 bilingual print company header: always Lao + Chinese, never translated/overlapped */
+@media print {
+  .print-company-bilingual {
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:2px!important;
+    width:100%!important;
+    text-align:center!important;
+  }
+  .print-company-bilingual .print-company-lao,
+  .print-company-bilingual .print-company-zh {
+    display:block!important;
+    position:static!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    white-space:normal!important;
+    transform:none!important;
+    text-align:center!important;
+  }
+  .print-company-bilingual .print-company-lao {font-size:20px!important;line-height:1.35!important;font-weight:800!important;}
+  .print-company-bilingual .print-company-zh {font-size:15px!important;line-height:1.35!important;font-weight:600!important;}
+}

@@ -318,6 +318,8 @@ function captureStaticLanguageBindings(){
   while((node=walker.nextNode())){
     const parent=node.parentElement;
     if(!parent||["SCRIPT","STYLE","NOSCRIPT"].includes(parent.tagName))continue;
+    // Keep explicitly bilingual print/company text unchanged in both language modes.
+    if(parent.closest("[data-no-translate]"))continue;
     if(translationPair(node.nodeValue))staticTextBindings.push({node,source:node.nodeValue});
   }
   document.querySelectorAll("[placeholder],[title],[aria-label]").forEach(el=>{
@@ -480,6 +482,29 @@ function formatPrice(value){
   return normalizePrice(value).toLocaleString(undefined,{maximumFractionDigits:2});
 }
 
+// v8.9: Google Sheets stores dates internally as serial numbers. Older Price
+// migrations could expose those serials (for example 46223.74) as a price.
+// Compare the price against the product timestamps and suppress only values that
+// clearly match a timestamp serial; legitimate prices are otherwise preserved.
+function localDateTextToSheetSerialV89(value){
+  const m=String(value??"").trim().match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+  if(!m)return NaN;
+  return Date.UTC(Number(m[1]),Number(m[2])-1,Number(m[3]),Number(m[4]),Number(m[5]),Number(m[6]))/86400000+25569;
+}
+function normalizedProductPriceV89(product){
+  const raw=firstValue(product||{},["price"],0);
+  if(/^\d{4}-\d{2}-\d{2}[ T]/.test(String(raw??"").trim()))return 0;
+  const n=normalizePrice(raw);
+  if(n>=20000&&n<=80000){
+    const tolerance=10/86400;
+    for(const key of ["created_at","updated_at"]){
+      const serial=localDateTextToSheetSerialV89(product?.[key]);
+      if(Number.isFinite(serial)&&Math.abs(n-serial)<=tolerance)return 0;
+    }
+  }
+  return n;
+}
+
 
 function upsertLocalProduct(product){
   if(!product)return;
@@ -555,7 +580,7 @@ function normalizeBootstrap(raw){
     category_id:firstValue(p,["category_id","category"],""),
     unit:firstValue(p,["unit"],""),
     note:firstValue(p,["note","remark","description"],""),
-    price:normalizePrice(firstValue(p,["price"],0)),
+    price:normalizedProductPriceV89(p),
     stock_qty:parseFlexibleQuantity(firstValue(p,["stock_qty","stock","quantity"],0),0),
     minimum_stock:parseFlexibleQuantity(firstValue(p,["minimum_stock","min_stock"],0),0)
   }));
