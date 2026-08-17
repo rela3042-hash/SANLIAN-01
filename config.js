@@ -1,5 +1,10 @@
-// Paste the Google Apps Script Web App URL after deployment.
+// SANLIAN Equipment Management — Supabase configuration.
+// Use the Project URL and Publishable key from Supabase Dashboard.
+// NEVER put a secret/service_role key in this file or GitHub.
 window.SIGNSHOP_CONFIG = {
-  API_URL: "https://script.google.com/macros/s/AKfycbxBS8tjUwmjYdZPUyhDqYJc0MRCtD92FmrVpsLhVt6hTd_m8ZEnKcM-aR5cgHHP5pNkCQ/exec",
+  BACKEND_MODE: "supabase",
+  SUPABASE_URL: "https://wqqtorvssywgsrxmsrfd.supabase.co",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_hP6q8EJ9fFLZOder4JfUBA_NoaVCpOL",
+  USERNAME_EMAIL_DOMAIN: "sanlian.local",
   POLL_SECONDS: 15
 };

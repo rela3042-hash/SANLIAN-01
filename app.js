@@ -1,20 +1,15 @@
 
 async function checkBackendVersion(){
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),5000);
   try{
-    const response=await fetch(API_URL,{method:"GET",cache:"no-store",signal:controller.signal});
-    const json=await response.json();
-    const version=json?.data?.version||"unknown";
+    const info=await window.SANLIAN_SUPABASE?.call("backendInfo",{});
+    const version=info?.version||"unknown";
     const el=document.querySelector("#backendVersion");
     if(el)el.textContent=tl("Backend: "+version,"后端: "+version);
     return version;
   }catch(err){
     const el=document.querySelector("#backendVersion");
-    if(el)el.textContent=err?.name==="AbortError"?tl("Backend: timeout","后端：连接超时"):tl("Backend: connection error","后端：连接错误");
+    if(el)el.textContent=tl("Backend: Supabase config required","后端：需要 Supabase 配置");
     return "error";
-  }finally{
-    clearTimeout(timer);
   }
 }
 
@@ -31,7 +26,7 @@ async function checkBackendCompatibility(){
     const el=document.querySelector("#backendVersion");
     if(/Unknown action/i.test(msg)){
       if(el)el.textContent=tl("Backend: OLD VERSION","后端：旧版本");
-      toast(tl("Frontend ກຳລັງເຊື່ອມຫາ Backend ເກົ່າ. ກະລຸນາ Deploy Backend v8.5 ແລະກວດ API_URL.","前端连接的是旧版后端。请部署 v8.5 后端并检查 API_URL。"));
+      toast(tl("ກະລຸນາກວດ SUPABASE_URL ແລະ SUPABASE_PUBLISHABLE_KEY ໃນ config.js.","请检查 config.js 中的 SUPABASE_URL 和 SUPABASE_PUBLISHABLE_KEY。"));
     }else{
       if(el)el.textContent=tl("Backend: check failed","后端：检查失败");
       console.warn("Backend compatibility check failed:",err);
@@ -40,7 +35,7 @@ async function checkBackendCompatibility(){
   }
 }
 
-window.SANLIAN_BUILD="8.5.0";console.log("SANLIAN BUILD 8.5.0 PRODUCT DELETE ZERO FIX loaded");
+window.SANLIAN_BUILD="10.3.5-SUPABASE-AUTO-SKU-FIX";console.log("SANLIAN BUILD 10.3.5 SUPABASE AUTO SKU FIX loaded");
 
 async function removeOldServiceWorkersAndCaches(){
   try{
@@ -107,8 +102,8 @@ const UI_TRANSLATIONS={
   "ຜູ້ສ້າງ":{lo:"ຜູ້ສ້າງ",zh:"创建人"},
   "ຊື່ໄຟລ໌":{lo:"ຊື່ໄຟລ໌",zh:"文件名"},
   "ນະໂຍບາຍ Backup":{lo:"ນະໂຍບາຍ Backup",zh:"备份策略"},
-  "ສຳຮອງ Google Sheets ແລະດາວໂຫຼດ Snapshot":{lo:"ສຳຮອງ Google Sheets ແລະດາວໂຫຼດ Snapshot",zh:"备份 Google Sheets 并下载快照"},
-  "Backup ຈະສ້າງສຳເນົາ Spreadsheet ໄປທີ່ Google Drive ແລະບັນທຶກປະຫວັດໄວ້.":{lo:"Backup ຈະສ້າງສຳເນົາ Spreadsheet ໄປທີ່ Google Drive ແລະບັນທຶກປະຫວັດໄວ້.",zh:"备份会将 Spreadsheet 复制到 Google Drive，并保存备份记录。"},
+  "ສຳຮອງ Google Sheets ແລະດາວໂຫຼດ Snapshot":{lo:"ສ້າງ Supabase App Snapshot ແລະດາວໂຫຼດ JSON",zh:"创建 Supabase 应用快照并下载 JSON"},
+  "Backup ຈະສ້າງສຳເນົາ Spreadsheet ໄປທີ່ Google Drive ແລະບັນທຶກປະຫວັດໄວ້.":{lo:"Snapshot ຈະເກັບສຳເນົາຂໍ້ມູນຫຼັກໄວ້ໃນ Supabase ສຳລັບການກວດ/Export.",zh:"快照会在 Supabase 中保存主要应用数据，用于检查和导出。"},
   "ລະບົບຈະ Backup ອັດຕະໂນມັດອາທິດລະ 1 ຄັ້ງ (ວັນອາທິດ ປະມານ 02:00), ແລະ Admin ສາມາດສ້າງ ຫຼື ລຶບ Backup ໄດ້ດ້ວຍຕົນເອງ.":{lo:"ລະບົບຈະ Backup ອັດຕະໂນມັດອາທິດລະ 1 ຄັ້ງ (ວັນອາທິດ ປະມານ 02:00), ແລະ Admin ສາມາດສ້າງ ຫຼື ລຶບ Backup ໄດ້ດ້ວຍຕົນເອງ.",zh:"系统每周自动备份一次（星期日约 02:00），管理员也可以随时手动创建或删除备份。"},
   "ລາຍອາທິດ":{lo:"ລາຍອາທິດ",zh:"每周"},
   "ຈັດການ":{lo:"ຈັດການ",zh:"操作"},
@@ -172,7 +167,7 @@ const UI_TRANSLATIONS={
   "Viewer":{lo:"ຜູ້ເບິ່ງ",zh:"查看者"},
   "Creating backup...":{lo:"ກຳລັງສ້າງ Backup...",zh:"正在创建备份..."},
   "Backup completed":{lo:"Backup ສຳເລັດ",zh:"备份完成"},
-  "Create Google Drive backup now?":{lo:"ສ້າງ Google Drive Backup ຕອນນີ້ບໍ?",zh:"现在创建 Google Drive 备份吗？"},
+  "Create Supabase snapshot now?":{lo:"ສ້າງ Supabase App Snapshot ຕອນນີ້ບໍ?",zh:"现在创建 Supabase 应用快照吗？"},
 
   "ທຸກໝວດໝູ່":{lo:"ທຸກໝວດໝູ່",zh:"所有类别"},
   "ບໍ່ພົບຂໍ້ມູນ":{lo:"ບໍ່ພົບຂໍ້ມູນ",zh:"未找到数据"},
@@ -391,7 +386,7 @@ function updateNetworkStatus(){
   document.body.classList.toggle("is-offline",!online);
   if(!banner)return;
   banner.classList.remove("hidden","online");
-  banner.textContent=online?tl("✅ Online — ເຊື່ອມຕໍ່ Internet ແລ້ວ","✅ 在线 — 已连接互联网"):tl("⚠️ Offline — ຂໍ້ມູນ Google Sheets ຍັງບໍ່ສາມາດບັນທຶກ","⚠️ 离线 — Google Sheets 数据暂时无法保存");
+  banner.textContent=online?tl("✅ Online — ເຊື່ອມຕໍ່ Internet ແລ້ວ","✅ 在线 — 已连接互联网"):tl("⚠️ Offline — ຍັງບໍ່ສາມາດ Sync ກັບ Supabase","⚠️ 离线 — 暂时无法同步 Supabase");
   if(online){
     banner.classList.add("online");
     setTimeout(()=>banner.classList.add("hidden"),2500);
@@ -421,7 +416,7 @@ async function clearOfflineCache(){
   toast(tl("ລ້າງ Offline cache ແລ້ວ","离线缓存已清除"));
 }
 
-const API_URL=(window.SIGNSHOP_CONFIG?.API_URL||"").trim();
+const API_URL=(window.SIGNSHOP_CONFIG?.SUPABASE_URL||"").trim();
 let sessionToken=localStorage.getItem("signshop_session")||"";
 const USER_CACHE_KEY="signshop_current_user";
 let currentUser=(()=>{try{return JSON.parse(localStorage.getItem(USER_CACHE_KEY)||"null")}catch(_){return null}})();
@@ -434,6 +429,7 @@ let torchEnabled=false;
 let usbScanBuffer='';
 let usbScanTimer=null;
 let state={products:[],categories:[],stockIn:[],stockOut:[],movements:[],stockCounts:[],users:[],auditLogs:[],backups:[]};
+let realtimeSyncStarted=false;
 const STOCK_COUNT_STORAGE_KEY="sanlian_stock_count_records_v1";
 let stockCountRecords=[];
 let editingStockCountId="";
@@ -637,25 +633,11 @@ function setText(selector,value){
 function toast(m){const t=$("#toast");if(!t){console.warn("Toast element missing:",m);return}setText(t,m);t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
 function statusOf(p){if(Number(p.stock_qty)<=0)return"out";if(Number(p.stock_qty)<=Number(p.minimum_stock))return"low";return"normal"}
 async function api(action,data={}){
- if(!API_URL||API_URL.includes("PASTE_"))throw new Error(tl("ກະລຸນາໃສ່ API_URL ໃນ config.js","请在 config.js 中填写 API_URL"));
- let res;
- try{
-   const controller=new AbortController();
-   const timeoutMs=["saveStockCount","updateStockCount","deleteStockCount","adjustStockCount","createBackup","deleteBackup","archiveMonthlyTransactions"].includes(action)?45000:20000;
-   const timer=setTimeout(()=>controller.abort(),timeoutMs);
-   try{
-     res=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action,token:sessionToken,...data}),signal:controller.signal});
-   }finally{
-     clearTimeout(timer);
-   }
- }catch(err){
-   throw new Error(err?.name==="AbortError"?tl("Server ຕອບຊ້າເກີນເວລາທີ່ກຳນົດ","服务器响应超时"):tl("ບໍ່ສາມາດເຊື່ອມຕໍ່ Server: ","无法连接服务器：")+err.message);
- }
- let json;
- try{json=await res.json()}catch(err){throw new Error(tl("Server ສົ່ງຂໍ້ມູນບໍ່ຖືກຕ້ອງ","服务器返回的数据格式不正确"))}
- if(!json.ok)throw new Error(json.error||"API error");
- return json.data;
+  if(!window.SANLIAN_SUPABASE?.call)throw new Error(tl("Supabase adapter ບໍ່ໄດ້ໂຫຼດ","Supabase 适配器未加载"));
+  try{return await window.SANLIAN_SUPABASE.call(action,data)}
+  catch(err){throw new Error(err?.message||String(err))}
 }
+
 function hideBoot(){
  const boot=$("#bootView");
  if(boot)boot.classList.add("hidden");
@@ -713,6 +695,7 @@ async function login(username,password){
  showApp();
  try{
    await refreshAll();
+   startRealtimeSync();
    checkBackendCompatibility().catch(()=>{});
  }catch(err){
    console.error("Initial refresh after login failed:",err);
@@ -725,7 +708,7 @@ function isAuthenticationError(error){
  return message.includes('not authenticated')||message.includes('session expired')||message.includes('user not found');
 }
 async function restoreSession(){
- if(!sessionToken){showLogin();return;}
+ // Supabase persists/refreshes its own session. The legacy token is only a UI hint.
  if(currentUser){
    applyRole();
    showApp();
@@ -734,11 +717,14 @@ async function restoreSession(){
    const verifiedUser=await api("me");
    if(verifiedUser){
      currentUser=verifiedUser;
+     sessionToken="supabase-session";
+     localStorage.setItem("signshop_session",sessionToken);
      localStorage.setItem(USER_CACHE_KEY,JSON.stringify(currentUser));
    }
    applyRole();
    showApp();
    await refreshAll();
+   startRealtimeSync();
    checkBackendCompatibility().catch(()=>{});
  }catch(e){
    console.warn("Session restore failed:",e);
@@ -760,6 +746,16 @@ async function restoreSession(){
    }
  }
 }
+
+function startRealtimeSync(){
+  if(realtimeSyncStarted||!window.SANLIAN_SUPABASE?.startRealtime)return;
+  realtimeSyncStarted=true;
+  window.SANLIAN_SUPABASE.startRealtime(()=>{
+    if(!currentUser)return;
+    refreshAll().catch(err=>console.warn("Realtime refresh failed:",err));
+  });
+}
+
 async function refreshAll(){
  setText("#syncStatus",tl("● Syncing","● 同步中"));
  const d=await api("bootstrap");
@@ -869,6 +865,31 @@ function generateLocalSku(){
   return sku;
 }
 
+function skuFromRpcResult(value){
+  if(typeof value==="string")return value.trim();
+  if(value&&typeof value==="object")return String(value.sku||value.next_sku||value.value||"").trim();
+  return "";
+}
+
+async function refreshAutoSku(){
+  const form=$("#productForm");
+  const input=form?.elements?.sku;
+  if(!input)return "";
+  // Show an immediate local value, then replace it with the authoritative
+  // database value. The RPC scans active + inactive products, so deleted
+  // records cannot make the automatic SKU repeat.
+  if(PRODUCT_ENTRY_MODES.sku!=="auto")return String(input.value||"");
+  const local=generateLocalSku();
+  input.value=local;
+  try{
+    const remote=skuFromRpcResult(await api("getNextProductSku"));
+    if(remote&&PRODUCT_ENTRY_MODES.sku==="auto"&&String(form.dataset.mode||"")!=="edit")input.value=remote;
+  }catch(err){
+    console.warn("Next SKU RPC unavailable; using local preview. Server will still allocate a unique auto SKU on save.",err);
+  }
+  return String(input.value||local);
+}
+
 
 function syncForm(fid){
  const f=$("#"+fid);
@@ -912,6 +933,8 @@ function renderProducts(){
 
  paintPagination("product",productPage,list.length,productPageSize);
 }
+
+
 
 
 function stockHistoryFiltered(type){
@@ -1422,13 +1445,13 @@ async function deleteBackupAsAdmin(backupId){
   if(String(currentUser?.role||"")!=="Admin"){toast(t("Admin only"));return}
   const record=(state.backups||[]).find(x=>String(x.backup_id)===String(backupId));
   const name=record?.file_name||backupId;
-  if(!confirm(tl(`ລຶບ Backup “${name}” ບໍ? ໄຟລ໌ໃນ Google Drive ຈະຖືກຍ້າຍໄປ Trash.`,`删除备份“${name}”吗？Google Drive 中的文件将移到回收站。`)))return;
+  if(!confirm(tl(`ລຶບ Backup “${name}” ບໍ? Snapshot ໃນ Supabase ຈະຖືກລຶບ.`,`删除备份“${name}”吗？Supabase 中的快照将被删除。`)))return;
   try{
     toast(t("ກຳລັງລຶບ Backup..."));
     const result=await api("deleteBackup",{backup_id:backupId});
     await refreshAll();
     if(result?.warning){
-      toast(tl("ລຶບລາຍການ Backup ສຳເລັດ ແຕ່ Google Drive ມີຄຳເຕືອນ: ","备份记录已删除，但 Google Drive 有警告：")+result.warning);
+      toast(tl("ລຶບລາຍການ Backup ສຳເລັດ ແຕ່ Supabase ມີຄຳເຕືອນ: ","备份记录已删除，但 Supabase 有警告：")+result.warning);
     }else{
       toast(t("ລຶບ Backup ສຳເລັດ"));
     }
@@ -1478,8 +1501,8 @@ async function archiveMonthlyTransactions(){
     return;
   }
   const ok=confirm(tl(
-    "📦 Archive ຂໍ້ມູນ Stock In / Stock Out / Movements ຂອງເດືອນທີ່ຜ່ານມາ?\n\n• ລະບົບຈະ Backup Spreadsheet ກ່ອນ\n• ຂໍ້ມູນເດືອນປັດຈຸບັນຈະບໍ່ຖືກລຶບ\n• ຍອດ Products.stock_qty ຈະບໍ່ປ່ຽນ",
-    "📦 归档上个月的入库 / 出库 / Movements 数据？\n\n• 系统会先备份 Spreadsheet\n• 本月数据不会被删除\n• Products.stock_qty 库存余额不会改变"
+    "📦 Archive ຂໍ້ມູນ Stock In / Stock Out / Movements ຂອງເດືອນທີ່ຜ່ານມາ?\n\n• ລະບົບຈະສ້າງ App Snapshot ກ່ອນ\n• ຂໍ້ມູນເດືອນປັດຈຸບັນຈະບໍ່ຖືກລຶບ\n• ຍອດ Products.stock_qty ຈະບໍ່ປ່ຽນ",
+    "📦 归档上个月的入库 / 出库 / Movements 数据？\n\n• 系统会先创建应用快照\n• 本月数据不会被删除\n• Products.stock_qty 库存余额不会改变"
   ));
   if(!ok)return;
   const button=$("#archiveMonthlyBtn");
@@ -1512,6 +1535,8 @@ $("#loginForm").onsubmit=async e=>{e.preventDefault();setText("#loginError","");
 $("#logoutBtn").onclick=async()=>{
  if(!confirm(t("ຢືນຢັນອອກຈາກລະບົບ?")))return;
  try{await api("logout")}catch(e){}
+ try{await window.SANLIAN_SUPABASE?.stopRealtime?.()}catch(e){}
+ realtimeSyncStarted=false;
  localStorage.removeItem("signshop_session");localStorage.removeItem(USER_CACHE_KEY);sessionStorage.clear();sessionToken="";currentUser=null;
  const f=$("#loginForm");if(f){f.reset();f.querySelectorAll("input").forEach(i=>{i.value="";i.setAttribute("value","")})}
  setText("#loginError","");showLogin();setTimeout(()=>{const u=f?.elements?.username;if(u){u.value="";u.focus()}const p=f?.elements?.password;if(p)p.value=""},80);
@@ -1546,6 +1571,7 @@ document.addEventListener("click",async e=>{const n=e.target.closest("[data-page
      saveBtn.dataset.defaultText=saveBtn.dataset.defaultText||saveBtn.textContent||"ບັນທຶກ";
      saveBtn.textContent=t(saveBtn.dataset.defaultText);
    }
+   resetProductEntryModes();
    if(f.elements.product_id)f.elements.product_id.value="";
    if(f.elements.barcode)f.elements.barcode.value=generateLocalBarcode();
    if(f.elements.sku)f.elements.sku.value=generateLocalSku();
@@ -1553,6 +1579,8 @@ document.addEventListener("click",async e=>{const n=e.target.closest("[data-page
    productModal?.classList.add("open");
    productModal?.setAttribute("aria-hidden","false");
    setTimeout(renderStaticTranslations,0);
+   // Ask Supabase for the real next SKU, including inactive/deleted records.
+   await refreshAutoSku();
  }
  const ep=e.target.closest("[data-edit-product]");
  if(ep){
@@ -1588,7 +1616,7 @@ document.addEventListener("click",async e=>{const n=e.target.closest("[data-page
  const scanBtn=e.target.closest("[data-scan-target]");if(scanBtn)openScanner(scanBtn.dataset.scanTarget);
  const ds=e.target.closest("[data-delete-stock]");if(ds&&confirm(tl("ລຶບ Transaction ແລະປັບ Stock ຄືນ?","删除交易并恢复库存？"))){const [type,id]=ds.dataset.deleteStock.split(":");try{await api("deleteStockTransaction",{type,id});await refreshAll()}catch(err){toast(err.message)}}})
 $("#generateBarcodeBtn").onclick=()=>{$("#productForm [name=barcode]").value=generateLocalBarcode();toast(t("ສ້າງ Barcode ໃໝ່ແລ້ວ"))};
-$("#generateSkuBtn").onclick=()=>{$("#productForm [name=sku]").value=generateLocalSku();toast(t("ສ້າງ SKU ໃໝ່ແລ້ວ"))};
+$("#generateSkuBtn").onclick=async()=>{await refreshAutoSku();toast(t("ສ້າງ SKU ໃໝ່ແລ້ວ"))};
 $("#productForm").onsubmit=async e=>{
   e.preventDefault();
 
@@ -1617,6 +1645,9 @@ $("#productForm").onsubmit=async e=>{
 
   if(!d.barcode)d.barcode=generateLocalBarcode();
   if(!d.sku)d.sku=generateLocalSku();
+  // Tell the database whether SKU is automatic or intentionally manual.
+  // In auto mode the database is authoritative and allocates the next unique SKU.
+  d.sku_mode=PRODUCT_ENTRY_MODES.sku;
   d.price=normalizePrice(d.price);
 
   const action=editingId?"updateProduct":"createProduct";
@@ -1719,8 +1750,8 @@ function applyProductEntryMode(target,mode,{generate=true}={}){
     input.placeholder="";
     if(hint)hint.textContent=target==="barcode"?t("ໂໝດ Auto: ລະບົບສ້າງ Barcode 13 ຫຼັກ"):t("ໂໝດ Auto: ລະບົບສ້າງ SKU ອັດຕະໂນມັດ");
     if(generate){
-      if(target==="barcode")generateBarcode();
-      else generateSku();
+      if(target==="barcode")input.value=generateLocalBarcode();
+      else void refreshAutoSku();
     }
   }
 }
@@ -1935,7 +1966,7 @@ if(stockCountForm){
     }else{
       payload.client_request_id=makeStockCountRequestId();
       try{await api("saveStockCount",{...payload,count:payload})}catch(firstErr){if(!isRetryableStockCountError(firstErr))throw firstErr;await new Promise(r=>setTimeout(r,1200));await api("saveStockCount",{...payload,count:payload})}
-      toast(tl("ບັນທຶກຜົນກວດສະຕ໋ອກລົງ Google Sheets ສຳເລັດ","盘点结果已保存到 Google Sheets"));
+      toast(tl("ບັນທຶກຜົນກວດສະຕ໋ອກລົງ Supabase ສຳເລັດ","盘点结果已保存到 Supabase"));
     }
     await refreshAll();renderStockCount();resetStockCountForm();
   }catch(err){toast((editingStockCountId?tl("ແກ້ໄຂຜົນກວດບໍ່ສຳເລັດ: ","修改盘点记录失败："):tl("ບັນທຶກຜົນກວດບໍ່ສຳເລັດ: ","盘点保存失败："))+err.message)}finally{setFormSaving(stockCountForm,false)}
@@ -1997,7 +2028,7 @@ document.addEventListener("click",async e=>{
  const reset=e.target.closest("[data-reset-user]");
  if(reset){
    e.preventDefault();
-   const pw=prompt(tl("Password ໃໝ່ (ຢ່າງໜ້ອຍ 6 ຕົວ)","新密码（至少 6 个字符）"));
+   const pw=prompt(tl("Password ໃໝ່ (ຢ່າງໜ້ອຍ 8 ຕົວ)","新密码（至少 8 个字符）"));
    if(!pw)return;
    try{await api("resetUserPassword",{user_id:reset.dataset.resetUser,password:pw});toast(t("ປ່ຽນ Password ສຳເລັດ"))}catch(err){toast(err.message)}
    return;
@@ -2093,6 +2124,8 @@ $("#printReportPortrait")?.addEventListener("click",()=>printSection("print-repo
 $("#printReportLandscape")?.addEventListener("click",()=>printSection("print-report","landscape"))
 $("#syncBtn").onclick=()=>refreshAll().catch(e=>toast(e.message));$("#themeBtn").onclick=()=>document.body.classList.toggle("dark");$("#globalSearch").oninput=e=>{openPage("products");$("#productSearch").value=e.target.value;renderProducts()}
 setInterval(()=>{if(sessionToken)refreshAll().catch(()=>{})},(window.SIGNSHOP_CONFIG?.POLL_SECONDS||15)*1000);
+
+
 
 $("#dashboardPeriod").onchange=renderDashboardCharts;
 $("#refreshDashboard").onclick=()=>refreshAll().catch(e=>toast(e.message));
@@ -2191,7 +2224,7 @@ $("#exportAuditBtn").onclick=exportAuditCsv;
 $("#clearAuditBtn")?.addEventListener("click",clearAuditLogsAsAdmin);
 $("#refreshAuditBtn").onclick=()=>{auditPage=1;refreshAll().catch(e=>toast(e.message))};
 $("#archiveMonthlyBtn")?.addEventListener("click",archiveMonthlyTransactions);
-$("#createBackupBtn").onclick=async()=>{if(!confirm(t("Create Google Drive backup now?")))return;try{toast(t("Creating backup..."));await api("createBackup");await refreshAll();toast(t("Backup completed"))}catch(err){toast(err.message)}};
+$("#createBackupBtn").onclick=async()=>{if(!confirm(t("Create Supabase snapshot now?")))return;try{toast(t("Creating backup..."));await api("createBackup");await refreshAll();toast(t("Backup completed"))}catch(err){toast(err.message)}};
 $("#backupBody")?.addEventListener("click",e=>{const b=e.target.closest("[data-delete-backup]");if(b)deleteBackupAsAdmin(b.dataset.deleteBackup)});
 $("#downloadSnapshotBtn").onclick=downloadSnapshot;
 
@@ -2223,8 +2256,8 @@ window.addEventListener("DOMContentLoaded",async()=>{
     showLogin();
   }
   const backendEl=document.querySelector("#backendVersion");
-  if(backendEl) backendEl.textContent=API_URL ? tl("Backend: checking...","后端：检查中...") : tl("Backend: config.js required","后端：需要 config.js");
-  if(API_URL)checkBackendVersion().catch(()=>{});
+  if(backendEl) backendEl.textContent=window.SANLIAN_SUPABASE?.configured?.() ? tl("Backend: Supabase checking...","后端：正在检查 Supabase...") : tl("Backend: Supabase config required","后端：需要 Supabase 配置");
+  if(window.SANLIAN_SUPABASE?.configured?.())checkBackendVersion().catch(()=>{});
   window.setTimeout(()=>{
     restoreSession().catch(err=>{
       console.error("Session restore failed:",err);
