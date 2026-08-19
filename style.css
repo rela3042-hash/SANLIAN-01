@@ -1218,3 +1218,9 @@ body.dark .language-switcher{background:rgba(15,23,42,.72)}
 }
 
 
+
+
+/* v10.3.6 monthly history filter */
+.history-month-filter{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:13px;font-weight:700;color:var(--muted,#64748b)}
+.history-month-filter input[type="month"]{min-width:160px}
+@media(max-width:760px){.history-month-filter{width:100%}.history-month-filter input[type="month"]{flex:1;min-width:0}}

@@ -26,7 +26,7 @@ async function checkBackendCompatibility(){
     const el=document.querySelector("#backendVersion");
     if(/Unknown action/i.test(msg)){
       if(el)el.textContent=tl("Backend: OLD VERSION","后端：旧版本");
-      toast(tl("ກະລຸນາກວດ SUPABASE_URL ແລະ SUPABASE_PUBLISHABLE_KEY ໃນ config.js.","请检查 config.js 中的 SUPABASE_URL 和 SUPABASE_PUBLISHABLE_KEY。"));
+      toast(tl("ກະລຸນາກວດ SUPABASE_URL ແລະ SUPABASE_PUBLISHABLE_KEY ໃນ config.js.","请检查 PostgreSQL API 服务器和 config.js。"));
     }else{
       if(el)el.textContent=tl("Backend: check failed","后端：检查失败");
       console.warn("Backend compatibility check failed:",err);
@@ -35,7 +35,7 @@ async function checkBackendCompatibility(){
   }
 }
 
-window.SANLIAN_BUILD="10.3.5-SUPABASE-AUTO-SKU-FIX";console.log("SANLIAN BUILD 10.3.5 SUPABASE AUTO SKU FIX loaded");
+window.SANLIAN_BUILD="10.4.3.1-SUPABASE-MONTHLY-HISTORY-ADMIN-PURGE";console.log("SANLIAN BUILD 10.4.3.1 SUPABASE MONTHLY HISTORY ADMIN PURGE loaded");
 
 async function removeOldServiceWorkersAndCaches(){
   try{
@@ -167,7 +167,7 @@ const UI_TRANSLATIONS={
   "Viewer":{lo:"ຜູ້ເບິ່ງ",zh:"查看者"},
   "Creating backup...":{lo:"ກຳລັງສ້າງ Backup...",zh:"正在创建备份..."},
   "Backup completed":{lo:"Backup ສຳເລັດ",zh:"备份完成"},
-  "Create Supabase snapshot now?":{lo:"ສ້າງ Supabase App Snapshot ຕອນນີ້ບໍ?",zh:"现在创建 Supabase 应用快照吗？"},
+  "Create Supabase snapshot now?":{lo:"ສ້າງ Supabase App Snapshot ຕອນນີ້ບໍ?",zh:"现在创建 PostgreSQL 应用快照吗？"},
 
   "ທຸກໝວດໝູ່":{lo:"ທຸກໝວດໝູ່",zh:"所有类别"},
   "ບໍ່ພົບຂໍ້ມູນ":{lo:"ບໍ່ພົບຂໍ້ມູນ",zh:"未找到数据"},
@@ -432,6 +432,10 @@ let state={products:[],categories:[],stockIn:[],stockOut:[],movements:[],stockCo
 let realtimeSyncStarted=false;
 const STOCK_COUNT_STORAGE_KEY="sanlian_stock_count_records_v1";
 let stockCountRecords=[];
+// Monthly history views are loaded on demand from Supabase when a month is selected.
+let historyStockInRows=null;
+let historyStockOutRows=null;
+let historyStockCountRows=null;
 let editingStockCountId="";
 function loadLegacyStockCountRecords(){
   try{
@@ -757,11 +761,21 @@ function startRealtimeSync(){
 }
 
 async function refreshAll(){
+ ensureHistoryMonthRollover();
  setText("#syncStatus",tl("● Syncing","● 同步中"));
  const d=await api("bootstrap");
- state=normalizeBootstrap(d);stockCountRecords=state.stockCounts||[];renderAll();setText("#syncStatus",tl("● Online","● 在线"))
+ state=normalizeBootstrap(d);stockCountRecords=state.stockCounts||[];
+ const activeId=document.querySelector(".page.active")?.id||"";
+ if(activeId==="stock-in")await loadHistoryMonth("stockIn",$("#stockInMonth")?.value||historyCurrentMonth());
+ else if(activeId==="stock-out")await loadHistoryMonth("stockOut",$("#stockOutMonth")?.value||historyCurrentMonth());
+ else if(activeId==="stock-count")await loadHistoryMonth("stockCount",$("#stockCountMonth")?.value||historyCurrentMonth());
+ renderAll();setText("#syncStatus",tl("● Online","● 在线"))
 }
-function openPage(id){$$(".page").forEach(p=>p.classList.toggle("active",p.id===id));$$(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===id));window.scrollTo({top:0,behavior:"smooth"})}
+function openPage(id){$$(".page").forEach(p=>p.classList.toggle("active",p.id===id));$$(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===id));window.scrollTo({top:0,behavior:"smooth"});
+ if(id==="stock-in")changeHistoryMonth("stockIn","stockInMonth");
+ else if(id==="stock-out")changeHistoryMonth("stockOut","stockOutMonth");
+ else if(id==="stock-count")changeHistoryMonth("stockCount","stockCountMonth");
+}
 function categoryName(id){return state.categories.find(c=>c.category_id===id)?.category_name||id}
 function fillSelects(){
  const cats=state.categories.filter(c=>String(c.is_active)!=="false");
@@ -937,12 +951,67 @@ function renderProducts(){
 
 
 
+function historyCurrentMonth(){
+ const d=new Date();
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function historyMonthKey(value){
+ if(!value)return"";
+ const d=new Date(value);
+ if(Number.isNaN(d.getTime()))return String(value).slice(0,7);
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+function historyMonthMatches(value,month){return !month||historyMonthKey(value)===month}
+const HISTORY_CALENDAR_MONTH_KEY="sanlian_calendar_month_v1";
+function ensureHistoryMonthRollover(){
+ const current=historyCurrentMonth();
+ const previous=localStorage.getItem(HISTORY_CALENDAR_MONTH_KEY)||"";
+ if(previous!==current){
+   ["stockInMonth","stockOutMonth","stockCountMonth"].forEach(id=>{const el=$("#"+id);if(el)el.value=current});
+   historyStockInRows=null;historyStockOutRows=null;historyStockCountRows=null;
+   localStorage.setItem(HISTORY_CALENDAR_MONTH_KEY,current);
+ }
+ return current;
+}
+function resetHistoryViewsToCurrentMonth(){
+ const current=historyCurrentMonth();
+ ["stockInMonth","stockOutMonth","stockCountMonth"].forEach(id=>{const el=$("#"+id);if(el)el.value=current});
+ historyStockInRows=null;
+ historyStockOutRows=null;
+ historyStockCountRows=null;
+ stockInPage=1;
+ stockOutPage=1;
+ localStorage.setItem(HISTORY_CALENDAR_MONTH_KEY,current);
+ return current;
+}
+async function loadHistoryMonth(kind,month){
+ const target=String(month||historyCurrentMonth());
+ const rows=await api("getHistoryMonth",{kind,month:target});
+ if(kind==="stockIn")historyStockInRows=(rows||[]).map(r=>({...r,quantity:Number(r.quantity||0)}));
+ else if(kind==="stockOut")historyStockOutRows=(rows||[]).map(r=>({...r,quantity:Number(r.quantity||0)}));
+ else if(kind==="stockCount")historyStockCountRows=(rows||[]).map(r=>{
+   const systemQty=Number(r.system_qty||0),actualQty=Number(r.actual_qty||0),adjustedRaw=r.adjusted;
+   return {...r,id:r.count_id||r.id||"",count_id:r.count_id||r.id||"",created_at:r.count_time||r.created_at||"",system_qty:systemQty,actual_qty:actualQty,difference:Number(r.difference??(actualQty-systemQty)),status:String(r.status||"").toLowerCase()||stockCountStatus(systemQty,actualQty),checker:r.checker_username||r.checker||"",adjusted:adjustedRaw===true||String(adjustedRaw).toLowerCase()==="true"};
+ });
+}
+async function changeHistoryMonth(kind,inputId){
+ const month=$("#"+inputId)?.value||historyCurrentMonth();
+ try{
+   if(kind==="stockIn")stockInPage=1;
+   if(kind==="stockOut")stockOutPage=1;
+   await loadHistoryMonth(kind,month);
+   if(kind==="stockCount")renderStockCount(); else renderStock();
+ }catch(err){toast(tl("ໂຫຼດປະຫວັດບໍ່ສຳເລັດ: ","加载历史失败：")+(err?.message||err))}
+}
 function stockHistoryFiltered(type){
- const list=type==="IN"?(state.stockIn||[]):(state.stockOut||[]);
  const prefix=type==="IN"?"stockIn":"stockOut";
+ const override=type==="IN"?historyStockInRows:historyStockOutRows;
+ const list=override!==null?override:(type==="IN"?(state.stockIn||[]):(state.stockOut||[]));
  const q=String($("#"+prefix+"Search")?.value||"").trim().toLowerCase();
- if(!q)return list;
+ const month=$("#"+prefix+"Month")?.value||historyCurrentMonth();
  return list.filter(r=>{
+   if(!historyMonthMatches(r.transaction_time,month))return false;
+   if(!q)return true;
    const p=state.products.find(x=>String(x.product_id)===String(r.product_id));
    return [r.barcode,p?.barcode,r.sku,p?.sku,r.product_name,p?.product_name,r.note,r.transaction_time].some(v=>String(v||"").toLowerCase().includes(q));
  });
@@ -951,7 +1020,9 @@ function renderStock(){
  const row=(r,type)=>{
    const p=state.products.find(x=>String(x.product_id)===String(r.product_id));
    const id=safeValue(r[type==="IN"?"stock_in_id":"stock_out_id"]);
-   return`<tr><td>${id}</td><td>${normalizeDateTime(r.transaction_time)}</td><td>${safeValue(r.barcode||p?.barcode)}</td><td>${safeValue(p?.product_name||r.product_name||r.product_id)}</td><td>${safeValue(r.sku||p?.sku)}</td><td>${Number(r.quantity||0)}</td><td>${safeValue(r.note)}</td><td>${["Admin","Manager"].includes(currentUser?.role)?`<button class="mini" data-delete-stock="${type}:${id}">${t("Delete")}</button>`:"-"}</td></tr>`;
+   const prefix=type==="IN"?"stockIn":"stockOut",selectedMonth=$("#"+prefix+"Month")?.value||historyCurrentMonth(),historical=selectedMonth!==historyCurrentMonth();
+   const action=historical?`<span class="muted-dash">${tl("ປະຫວັດ","历史")}</span>`:(["Admin","Manager"].includes(currentUser?.role)?`<button class="mini" data-delete-stock="${type}:${id}">${t("Delete")}</button>`:"-");
+   return`<tr><td>${id}</td><td>${normalizeDateTime(r.transaction_time)}</td><td>${safeValue(r.barcode||p?.barcode)}</td><td>${safeValue(p?.product_name||r.product_name||r.product_id)}</td><td>${safeValue(r.sku||p?.sku)}</td><td>${Number(r.quantity||0)}</td><td>${safeValue(r.note)}</td><td>${action}</td></tr>`;
  };
  const inList=stockHistoryFiltered("IN"),outList=stockHistoryFiltered("OUT");
  const inPages=Math.max(1,Math.ceil(inList.length/stockInPageSize)),outPages=Math.max(1,Math.ceil(outList.length/stockOutPageSize));
@@ -1081,18 +1152,18 @@ function resetStockCountForm(){
  setStockCountEditUi(false);
  f.reset();f.elements.category.dataset.selectedCategory="";f.elements.productId.dataset.selectedProduct="";$("#countBarcode").value="";fillStockCountSelects(false);f.elements.checker.value=currentUser?.display_name||currentUser?.username||"";f.elements.countTime.value=new Date().toLocaleString(currentLanguage==="zh"?"zh-CN":"lo-LA");updateStockCountPreview();setTimeout(()=>$("#countBarcode")?.focus(),50);
 }
-function stockCountSearchRows(){const q=String($("#stockCountSearch")?.value||"").trim().toLowerCase();return stockCountRecords.filter(r=>!q||`${r.barcode} ${r.sku} ${r.product_name} ${r.checker} ${stockCountReasonLabel(r.reason)} ${r.note}`.toLowerCase().includes(q))}
+function stockCountSearchRows(){const q=String($("#stockCountSearch")?.value||"").trim().toLowerCase(),month=$("#stockCountMonth")?.value||historyCurrentMonth(),source=historyStockCountRows!==null?historyStockCountRows:stockCountRecords;return source.filter(r=>historyMonthMatches(r.created_at||r.count_time,month)&&(!q||`${r.barcode} ${r.sku} ${r.product_name} ${r.checker} ${stockCountReasonLabel(r.reason)} ${r.note}`.toLowerCase().includes(q)))}
 function renderStockCount(){
  const body=$("#stockCountBody");if(!body)return;const rows=stockCountSearchRows();
  body.innerHTML=rows.length?rows.slice(0,250).map(r=>{
    const id=String(r.count_id||r.id||""),diff=Number(r.difference||0),status=r.status||stockCountStatus(r.system_qty,r.actual_qty),diffText=diff>0?`+${diff}`:String(diff);
-   const isAdmin=currentUser?.role==="Admin",canManage=isAdmin&&!r.adjusted&&Boolean(id),canAdjust=canManage&&diff!==0;
+   const isAdmin=currentUser?.role==="Admin",historical=($("#stockCountMonth")?.value||historyCurrentMonth())!==historyCurrentMonth(),canManage=isAdmin&&!historical&&!r.adjusted&&Boolean(id),canAdjust=canManage&&diff!==0;
    let action='<span class="muted-dash">—</span>';
    if(r.adjusted){action=`<span class="count-adjusted">${t("ປັບແລ້ວ")}</span>`}
    else if(canManage){action=`<div class="count-action-group">${canAdjust?`<button type="button" class="mini count-adjust-btn" data-adjust-count="${escapeStockCountHtml(id)}">${t("ປັບສະຕ໋ອກ")}</button>`:""}<button type="button" class="mini secondary count-edit-btn" data-edit-count="${escapeStockCountHtml(id)}">${t("Edit")}</button><button type="button" class="mini danger count-delete-btn" data-delete-count="${escapeStockCountHtml(id)}">${t("Delete")}</button></div>`}
    return `<tr class="count-row ${status}"><td>${escapeStockCountHtml(normalizeDateTime(r.created_at))}</td><td>${escapeStockCountHtml(r.barcode||"-")}</td><td>${escapeStockCountHtml(r.product_name||"-")}</td><td>${escapeStockCountHtml(r.sku||"-")}</td><td>${Number(r.system_qty||0)}</td><td>${Number(r.actual_qty||0)}</td><td class="count-diff ${status}">${escapeStockCountHtml(diffText)}</td><td><span class="count-status-pill ${status}">${escapeStockCountHtml(stockCountStatusLabel(status))}</span></td><td>${escapeStockCountHtml(diff===0?"-":stockCountReasonLabel(r.reason))}</td><td>${escapeStockCountHtml(r.checker||"-")}</td><td>${action}</td></tr>`
  }).join(""):`<tr><td colspan="11" class="empty-cell">${t("ບໍ່ພົບຂໍ້ມູນ")}</td></tr>`;
- const total=stockCountRecords.length,matched=stockCountRecords.filter(r=>r.status==="matched").length,shortage=stockCountRecords.filter(r=>r.status==="shortage").length,excess=stockCountRecords.filter(r=>r.status==="excess").length,metrics=$("#stockCountMetrics");
+ const total=rows.length,matched=rows.filter(r=>r.status==="matched").length,shortage=rows.filter(r=>r.status==="shortage").length,excess=rows.filter(r=>r.status==="excess").length,metrics=$("#stockCountMetrics");
  if(metrics)metrics.innerHTML=[[t("ລາຍການກວດ"),total],[t("ກົງ"),matched],[t("ຈຳນວນຂາດ"),shortage],[t("ຈຳນວນເກີນ"),excess]].map(x=>`<div class="metric"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join("");
  const f=$("#stockCountForm");if(f&&!editingStockCountId&&document.activeElement!==f.elements.actualQty)syncStockCountForm();
  if(editingStockCountId)setStockCountEditUi(true);
@@ -1501,20 +1572,75 @@ async function archiveMonthlyTransactions(){
     return;
   }
   const ok=confirm(tl(
-    "📦 Archive ຂໍ້ມູນ Stock In / Stock Out / Movements ຂອງເດືອນທີ່ຜ່ານມາ?\n\n• ລະບົບຈະສ້າງ App Snapshot ກ່ອນ\n• ຂໍ້ມູນເດືອນປັດຈຸບັນຈະບໍ່ຖືກລຶບ\n• ຍອດ Products.stock_qty ຈະບໍ່ປ່ຽນ",
-    "📦 归档上个月的入库 / 出库 / Movements 数据？\n\n• 系统会先创建应用快照\n• 本月数据不会被删除\n• Products.stock_qty 库存余额不会改变"
+    "📦 Snapshot ປະຫວັດ Stock In / Stock Out / Movements ຂອງເດືອນທີ່ຜ່ານມາ?\n\n• ຈະສ້າງ Backup ແລະ copy ເຂົ້າ Archive\n• ຂໍ້ມູນຕົ້ນສະບັບທຸກເດືອນຈະບໍ່ຖືກລຶບ\n• ສາມາດເລືອກເດືອນເພື່ອເບິ່ງຍ້ອນຫຼັງໄດ້\n• ຍອດ Products.stock_qty ຈະບໍ່ປ່ຽນ",
+    "📦 为以前月份的入库 / 出库 / Movements 建立快照？\n\n• 会创建备份并复制到归档\n• 不删除任何月份的原始记录\n• 可按月份查看历史\n• Products.stock_qty 库存余额不会改变"
   ));
   if(!ok)return;
   const button=$("#archiveMonthlyBtn");
   if(button)button.disabled=true;
   try{
-    toast(tl("ກຳລັງ Backup ແລະ Archive...","正在备份并归档..."));
+    toast(tl("ກຳລັງ Backup ແລະ Snapshot...","正在备份并建立快照..."));
     const result=await api("archiveMonthlyTransactions",{confirm:"ARCHIVE"});
     await refreshAll();
     const total=Number(result?.total_archived||0);
-    toast(tFormat("Archive ສຳເລັດ {total} ລາຍການ","归档成功，共 {total} 条",{total}));
+    toast(tFormat("Snapshot ສຳເລັດ {total} ລາຍການ (ບໍ່ລຶບປະຫວັດ)","快照完成，共 {total} 条（历史未删除）",{total}));
   }catch(err){
     toast(err?.message||tl("Archive ບໍ່ສຳເລັດ","归档失败"));
+  }finally{
+    if(button)button.disabled=false;
+  }
+}
+
+function previousHistoryMonth(){
+  const d=new Date();
+  d.setDate(1); d.setMonth(d.getMonth()-1);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+}
+async function purgeHistoryMonth(){
+  const role=String(currentUser?.role||currentUser?.user?.role||"").toLowerCase();
+  if(role!=="admin"){
+    toast(t("ສະເພາະ Admin ເທົ່ານັ້ນ"));
+    return;
+  }
+  const month=String(prompt(tl(
+    "ໃສ່ເດືອນທີ່ຈະ Archive + Purge (YYYY-MM)\nຫ້າມເປັນເດືອນປັດຈຸບັນ",
+    "输入要归档并清理的月份 (YYYY-MM)\n不能是当前月份"
+  ),previousHistoryMonth())||"").trim();
+  if(!/^\d{4}-\d{2}$/.test(month)){
+    toast(tl("ຮູບແບບເດືອນບໍ່ຖືກ: YYYY-MM","月份格式错误：YYYY-MM"));
+    return;
+  }
+  if(month>=historyCurrentMonth()){
+    toast(tl("ຫ້າມລຶບເດືອນປັດຈຸບັນ ຫຼື ເດືອນອະນາຄົດ","不能清理当前或未来月份"));
+    return;
+  }
+  const ok=confirm(tl(
+    `⚠️ Admin Archive + Purge ${month}?\n\n• ລະບົບຈະ Backup ກ່ອນ\n• ຈະສຳເນົາ Stock In / Stock Out / Movements ເຂົ້າ Archive\n• ແລ້ວຈຶ່ງລຶບຈາກຕາຕະລາງຫຼັກ\n• ຍອດ stock ປັດຈຸບັນບໍ່ປ່ຽນ\n• ຍັງເບິ່ງປະຫວັດ ${month} ໄດ້ຈາກ Archive\n• Audit/Security log ຈະບັນທຶກການລຶບ`,
+    `⚠️ 管理员归档并清理 ${month}?\n\n• 先创建备份\n• 入库/出库/Movements 复制到归档\n• 然后从主表清理\n• 当前库存余额不变\n• ${month} 仍可从归档查看\n• 操作会写入审计/安全日志`
+  ));
+  if(!ok)return;
+  const phrase=`PURGE ${month}`;
+  const typed=prompt(tl(`ພິມ ${phrase} ເພື່ອຢືນຢັນ`,`输入 ${phrase} 以确认`));
+  if(typed!==phrase){
+    toast(tl("ຍົກເລີກ: ຄຳຢືນຢັນບໍ່ຖືກຕ້ອງ","已取消：确认文字不正确"));
+    return;
+  }
+  const button=$("#purgeHistoryMonthBtn");
+  if(button)button.disabled=true;
+  try{
+    toast(tl("ກຳລັງ Backup → Archive → Purge...","正在备份 → 归档 → 清理..."));
+    const result=await api("purgeHistoryMonth",{month,confirm:phrase});
+    await refreshAll();
+    resetHistoryViewsToCurrentMonth();
+    const insDeleted=Number(result?.stock_in_deleted||0),outsDeleted=Number(result?.stock_out_deleted||0),movesDeleted=Number(result?.movements_deleted||0);
+    const insArchived=Number(result?.stock_in_archived||0),outsArchived=Number(result?.stock_out_archived||0),movesArchived=Number(result?.movements_archived||0);
+    toast(tFormat(
+      "Archive + Purge {month} ສຳເລັດ: In {ins}, Out {outs}, Movements {moves}. Archive {ains}/{aouts}/{amoves}. ປະຫວັດຍັງເບິ່ງຍ້ອນຫຼັງໄດ້.",
+      "归档并清理 {month} 完成：入库 {ins}，出库 {outs}，Movements {moves}。归档 {ains}/{aouts}/{amoves}，历史仍可按月份查看。",
+      {month,ins:insDeleted,outs:outsDeleted,moves:movesDeleted,ains:insArchived,aouts:outsArchived,amoves:movesArchived}
+    ));
+  }catch(err){
+    toast(err?.message||tl("Archive + Purge ບໍ່ສຳເລັດ","归档清理失败"));
   }finally{
     if(button)button.disabled=false;
   }
@@ -2194,6 +2320,12 @@ if($("#auditPageSize"))$("#auditPageSize").onchange=e=>{auditPageSize=Math.max(1
  if(size)size.onchange=e=>{const v=Math.max(1,Number(e.target.value)||10);if(prefix==="stockIn"){stockInPageSize=v;stockInPage=1}else{stockOutPageSize=v;stockOutPage=1}localStorage.setItem("sanlian_"+prefix+"_page_size",String(v));renderStock()};
  if(refresh)refresh.onclick=()=>refreshAll().catch(e=>toast(e.message));
 });
+["stockInMonth","stockOutMonth","stockCountMonth"].forEach(id=>{
+ const el=$("#"+id);
+ if(el)el.onchange=()=>changeHistoryMonth(id.startsWith("stockIn")?"stockIn":id.startsWith("stockOut")?"stockOut":"stockCount",id);
+});
+if($("#stockCountSearch"))$("#stockCountSearch").oninput=()=>renderStockCount();
+
 $("#auditBody")?.addEventListener("click",e=>{const tr=e.target.closest("[data-audit-index]");if(tr)openAuditDetail(tr.dataset.auditIndex)});
 const closeAudit=()=>{const modal=$("#auditDetailModal");modal?.classList.remove("open");modal?.setAttribute("aria-hidden","true");document.body.classList.remove("modal-open")};
 $("#closeAuditDetail")?.addEventListener("click",closeAudit);
@@ -2224,6 +2356,7 @@ $("#exportAuditBtn").onclick=exportAuditCsv;
 $("#clearAuditBtn")?.addEventListener("click",clearAuditLogsAsAdmin);
 $("#refreshAuditBtn").onclick=()=>{auditPage=1;refreshAll().catch(e=>toast(e.message))};
 $("#archiveMonthlyBtn")?.addEventListener("click",archiveMonthlyTransactions);
+$("#purgeHistoryMonthBtn")?.addEventListener("click",purgeHistoryMonth);
 $("#createBackupBtn").onclick=async()=>{if(!confirm(t("Create Supabase snapshot now?")))return;try{toast(t("Creating backup..."));await api("createBackup");await refreshAll();toast(t("Backup completed"))}catch(err){toast(err.message)}};
 $("#backupBody")?.addEventListener("click",e=>{const b=e.target.closest("[data-delete-backup]");if(b)deleteBackupAsAdmin(b.dataset.deleteBackup)});
 $("#downloadSnapshotBtn").onclick=downloadSnapshot;
@@ -2247,6 +2380,8 @@ window.addEventListener("DOMContentLoaded",async()=>{
   if($("#auditPageSize"))$("#auditPageSize").value=String(auditPageSize);
   if($("#stockInPageSize"))$("#stockInPageSize").value=String(stockInPageSize);
   if($("#stockOutPageSize"))$("#stockOutPageSize").value=String(stockOutPageSize);
+  const defaultHistoryMonth=ensureHistoryMonthRollover();
+  ["stockInMonth","stockOutMonth","stockCountMonth"].forEach(id=>{const el=$("#"+id);if(el&&!el.value)el.value=defaultHistoryMonth});
   initLanguage();
   // Keep the authenticated view visible during refresh when a cached session exists.
   if(sessionToken && currentUser){

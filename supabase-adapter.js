@@ -1,4 +1,4 @@
-/* SANLIAN Supabase adapter v10.1 Equipment Management
+/* SANLIAN Supabase adapter v10.4.3.1 Monthly History + Security + Admin Archive Purge
    Keeps the existing frontend action contract while replacing Google Apps Script.
 */
 (function(){
@@ -104,7 +104,7 @@
   async function call(action,data={}){
     await requireConfigured();
     switch(action){
-      case 'backendInfo': return {service:'SANLIAN Equipment Management',version:'10.3.5-auto-sku-fix',backend:'Supabase',features:['auth','rls','products','categories','stockIn','stockOut','stockCount','notifications','audit','backupSnapshot','realtime','unifiedBootstrap','serverAutoSku']};
+      case 'backendInfo': return {service:'SANLIAN Equipment Management',version:'10.4.3.1-supabase-monthly-history-security-admin-purge',backend:'Supabase',features:['auth','rls','products','categories','stockIn','stockOut','stockCount','notifications','audit','backupSnapshot','realtime','unifiedBootstrap','serverAutoSku','monthlyHistory','nonDestructiveArchive','adminArchivePurge']};
       case 'login': {
         const email=userEmail(data.username);
         const {data:d,error}=await client.auth.signInWithPassword({email,password:String(data.password||'')});fail(error);
@@ -116,6 +116,14 @@
       case 'logout': {try{await audit('LOGOUT','SESSION','',{});}catch(_){} const {error}=await client.auth.signOut();fail(error);return true;}
       case 'me': return profileUser(await currentProfile());
       case 'bootstrap': return bootstrap();
+      case 'getHistoryMonth': {
+        const kind=String(data.kind||'');
+        const month=String(data.month||'');
+        if(!/^\d{4}-\d{2}$/.test(month))throw new Error('Month must be YYYY-MM');
+        const rows=await rpc('get_history_month',{p_kind:kind,p_month:month});
+        if(kind==='stockCount')return (rows||[]).map(flattenCount);
+        return rows||[];
+      }
 
       case 'createProduct': {
         const p=data.product||{};
@@ -163,6 +171,7 @@
       case 'createBackup': return await rpc('create_app_backup',{});
       case 'deleteBackup': return await rpc('delete_app_backup',{p_backup_id:data.backup_id});
       case 'archiveMonthlyTransactions': return await rpc('archive_old_movements',{p_confirm:data.confirm});
+      case 'purgeHistoryMonth': return await rpc('purge_history_month',{p_month:String(data.month||''),p_confirm:String(data.confirm||'')});
       case 'markNotificationRead': return await rpc('mark_notification_read',{p_notification_id:data.notification_id});
       case 'markAllNotificationsRead': return await rpc('mark_all_notifications_read',{});
       case 'deleteNotification': return await rpc('delete_notification',{p_notification_id:data.notification_id});
