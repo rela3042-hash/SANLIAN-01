@@ -1667,7 +1667,7 @@ $("#logoutBtn").onclick=async()=>{
  const f=$("#loginForm");if(f){f.reset();f.querySelectorAll("input").forEach(i=>{i.value="";i.setAttribute("value","")})}
  setText("#loginError","");showLogin();setTimeout(()=>{const u=f?.elements?.username;if(u){u.value="";u.focus()}const p=f?.elements?.password;if(p)p.value=""},80);
 }
-document.addEventListener("click",async e=>{const n=e.target.closest("[data-page]");if(n)openPage(n.dataset.page);const l=e.target.closest("[data-page-link]");if(l)openPage(l.dataset.pageLink);
+document.addEventListener("click",async e=>{const n=e.target.closest(".nav-item[data-page]");if(n)openPage(n.dataset.page);const l=e.target.closest("[data-page-link]");if(l)openPage(l.dataset.pageLink);
  const closeModalBtn=e.target.closest("[data-close-modal]");
  if(closeModalBtn){
    const modal=$("#productModal");
