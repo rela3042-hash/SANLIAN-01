@@ -1224,3 +1224,49 @@ body.dark .language-switcher{background:rgba(15,23,42,.72)}
 .history-month-filter{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:13px;font-weight:700;color:var(--muted,#64748b)}
 .history-month-filter input[type="month"]{min-width:160px}
 @media(max-width:760px){.history-month-filter{width:100%}.history-month-filter input[type="month"]{flex:1;min-width:0}}
+
+/* v10.4.3.2 - Desktop fixed sidebar / scroll main content only */
+@media (min-width: 901px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-shell {
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .sidebar {
+    position: relative;
+    top: auto;
+    height: 100vh;
+    min-height: 100vh;
+    overflow: hidden;
+  }
+
+  .main-area {
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topbar {
+    position: relative;
+    top: auto;
+    flex: 0 0 72px;
+    min-height: 72px;
+  }
+
+  .content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+}
