@@ -1487,7 +1487,7 @@ function openAuditDetail(index){
  ];
  const skip=new Set(["category_name","product_name","name","barcode","sku"]);
  Object.entries(d).forEach(([k,v])=>{if(!skip.has(k))detailRows.push([labels[k]||k,typeof v==="object"?JSON.stringify(v,null,2):v])});
- $("#auditDetailContent").innerHTML=detailRows.map(([k,v])=>`<div class="audit-detail-row"><span>${safeValue(k)}</span><strong>${safeValue(v??"-")}</strong></div>`).join("");
+ $("#auditDetailContent").innerHTML=detailRows.map(([k,v])=>`<div class="audit-detail-row"><span>${safeValue(k)}</span><strong ${/^(Record ID|Barcode|SKU|transaction_id)$/i.test(String(k)) ? 'data-identifier="true"' : ''}>${safeValue(v??"-")}</strong></div>`).join("");
  const modal=$("#auditDetailModal");modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");
 }
 function renderAudit(){
