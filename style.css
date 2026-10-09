@@ -1284,3 +1284,12 @@ body.dark .language-switcher{background:rgba(15,23,42,.72)}
 #auditDetailModal .audit-detail-row span {color:#374151!important;opacity:1!important;font-weight:600!important;}
 #auditDetailModal .audit-detail-row strong {color:#111827!important;opacity:1!important;font-weight:700!important;font-size:17px!important;line-height:1.6!important;letter-spacing:0!important;text-shadow:none!important;filter:none!important;-webkit-font-smoothing:auto!important;text-rendering:auto!important;}
 #auditDetailModal .audit-detail-row strong[data-identifier] {font-family:Consolas, 'Courier New', monospace!important;font-size:16px!important;font-weight:700!important;letter-spacing:0!important;font-variant-numeric:tabular-nums!important;}
+
+/* Audit V3: three highlighted fields, clear high-contrast text and natural wrapping */
+#auditDetailModal .audit-detail-card{width:min(850px,96vw)!important}
+#auditDetailModal .audit-detail-row.audit-highlight-row{background:#f8fafc;border-radius:8px;padding:14px 10px;margin:5px 0}
+#auditDetailModal .audit-value-wrap{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;min-width:0}
+#auditDetailModal .audit-highlight-row strong{font-family:Arial, sans-serif!important;font-size:19px!important;font-weight:700!important;color:#0b1220!important;line-height:1.55!important;letter-spacing:.15px!important;overflow-wrap:anywhere;word-break:break-word;min-width:0;flex:1 1 250px}
+#auditDetailModal .audit-highlight-row strong[data-identifier]{font-family:Consolas,'Courier New',monospace!important;font-size:18px!important;letter-spacing:.15px!important}
+#auditDetailModal .audit-copy-btn{background:#eff6ff;border:1px solid #93c5fd;border-radius:7px;padding:6px 12px;color:#1d4ed8;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0}
+@media(max-width:620px){#auditDetailModal .audit-highlight-row strong{font-size:16px!important;flex-basis:100%}}

@@ -1464,6 +1464,25 @@ function auditDetailsText(x){
  return "-";
 }
 function auditBadgeClass(action){const a=String(action||"").toUpperCase();if(a.includes("STOCK_IN")||a.includes("CREATE"))return"success";if(a.includes("STOCK_OUT")||a.includes("DELETE"))return"danger";if(a.includes("LOGIN"))return"info";if(a.includes("UPDATE"))return"warning";return""}
+function auditFriendlyRecord(x,d,product){
+ const name=d.product_name||product?.product_name||d.name;
+ const sku=d.sku||product?.sku;
+ const barcode=d.barcode||product?.barcode;
+ const pieces=[];
+ if(name)pieces.push(String(name));
+ if(sku)pieces.push(`SKU: ${sku}`);
+ else if(barcode)pieces.push(`Barcode: ${barcode}`);
+ return pieces.join(" • ")||tl("ບໍ່ມີຂໍ້ມູນສິນຄ້າ","无商品信息");
+}
+function auditFriendlyTransaction(x,d){
+ const action=String(x.action||"").toUpperCase();
+ const kind=action.includes("STOCK_OUT")?tl("ເບີກອອກ","出库"):action.includes("STOCK_IN")?tl("ຮັບເຂົ້າ","入库"):String(x.action||tl("ທຸລະກຳ","交易"));
+ const parts=[kind];
+ if(d.quantity!==undefined&&d.quantity!==null&&d.quantity!=="")parts.push(`${tl("ຈຳນວນ","数量")}: ${d.quantity}`);
+ if(d.balance!==undefined&&d.balance!==null&&d.balance!=="")parts.push(`${tl("ຄົງເຫຼືອ","余额")}: ${d.balance}`);
+ if(d.note)parts.push(`${tl("ໝາຍເຫດ","备注")}: ${d.note}`);
+ return parts.join(" • ");
+}
 function openAuditDetail(index){
  const x=(window.__auditPageRows||[])[Number(index)];if(!x)return;
  const d=parseAuditDetails(x.details);
@@ -1480,14 +1499,22 @@ function openAuditDetail(index){
  };
  const detailRows=[
    [t("ເວລາ"),x.created_at],[tl("User","用户"),x.username],[t("Role"),t(x.role)],[tl("Action","操作"),x.action],
-   [tl("Entity","实体"),x.entity_type],[tl("Record ID","记录 ID"),x.entity_id],
+   [tl("Entity","实体"),x.entity_type],[tl("ສິນຄ້າອ້າງອີງ","商品信息"),auditFriendlyRecord(x,d,product)],
    [tl("ໝວດໝູ່","类别"),d.category_name||category?.category_name||"-"],
    [t("ອຸປະກອນ"),d.product_name||product?.product_name||d.name||"-"],
    ["Barcode",d.barcode||product?.barcode||"-"],["SKU",d.sku||product?.sku||"-"]
  ];
- const skip=new Set(["category_name","product_name","name","barcode","sku"]);
+ const skip=new Set(["category_name","product_name","name","barcode","sku","transaction_id","product_id"]);
+ if(d.transaction_id)detailRows.push([tl("ລາຍລະອຽດທຸລະກຳ","交易详情"),auditFriendlyTransaction(x,d)]);
  Object.entries(d).forEach(([k,v])=>{if(!skip.has(k))detailRows.push([labels[k]||k,typeof v==="object"?JSON.stringify(v,null,2):v])});
- $("#auditDetailContent").innerHTML=detailRows.map(([k,v])=>`<div class="audit-detail-row"><span>${safeValue(k)}</span><strong ${/^(Record ID|Barcode|SKU|transaction_id)$/i.test(String(k)) ? 'data-identifier="true"' : ''}>${safeValue(v??"-")}</strong></div>`).join("");
+ // Format the three long fields for reading, without changing the stored audit values.
+ const auditDateDisplay=value=>{const date=new Date(value);return Number.isNaN(date.getTime())?String(value??"-"):new Intl.DateTimeFormat("en-GB",{timeZone:"Asia/Vientiane",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(date)+" (ລາວ)"};
+ $("#auditDetailContent").innerHTML=detailRows.map(([k,v],i)=>{
+   const key=String(k),raw=String(v??"-"),isTime=i===0,isLongId=false;
+   const shown=isTime?auditDateDisplay(raw):raw;
+   return `<div class="audit-detail-row ${isTime||isLongId?'audit-highlight-row':''}"><span>${safeValue(k)}</span><div class="audit-value-wrap"><strong ${isLongId?'data-identifier="true"':''} ${isTime?'class="audit-time-value"':''} title="${safeValue(raw)}">${safeValue(shown)}</strong>${isTime||isLongId?`<button type="button" class="audit-copy-btn" data-audit-copy="${i}">${tl("ສຳເນົາ","复制")}</button>`:''}</div></div>`;
+ }).join("");
+ $("#auditDetailContent").onclick=async e=>{const btn=e.target.closest('[data-audit-copy]');if(!btn)return;const index=Number(btn.dataset.auditCopy);const value=String(detailRows[index]?.[1]??'');try{await navigator.clipboard.writeText(value);toast(tl('ສຳເນົາແລ້ວ','已复制'))}catch(err){toast(tl('ສຳເນົາບໍ່ສຳເລັດ','复制失败'))}};
  const modal=$("#auditDetailModal");modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.classList.add("modal-open");
 }
 function renderAudit(){
@@ -1502,7 +1529,7 @@ function renderAudit(){
  if(auditPage>totalPages)auditPage=totalPages;if(auditPage<1)auditPage=1;
  const pageRows=list.slice((auditPage-1)*auditPageSize,auditPage*auditPageSize);
  window.__auditPageRows=pageRows;
- if($("#auditBody"))$("#auditBody").innerHTML=pageRows.length?pageRows.map((x,i)=>`<tr class="audit-clickable" data-audit-index="${i}"><td>${safeValue(x.created_at)}</td><td>${safeValue(x.username)}</td><td>${t(safeValue(x.role))}</td><td><span class="badge ${auditBadgeClass(x.action)}">${safeValue(x.action)}</span></td><td>${safeValue(x.entity_type)}</td><td>${safeValue(x.entity_id||"-")}</td><td class="audit-detail-summary">${safeValue(auditDetailsText(x))}</td></tr>`).join(""):`<tr><td colspan="7" class="empty-cell">${t("ບໍ່ພົບຂໍ້ມູນ")}</td></tr>`;
+ if($("#auditBody"))$("#auditBody").innerHTML=pageRows.length?pageRows.map((x,i)=>`<tr class="audit-clickable" data-audit-index="${i}"><td>${safeValue(x.created_at)}</td><td>${safeValue(x.username)}</td><td>${t(safeValue(x.role))}</td><td><span class="badge ${auditBadgeClass(x.action)}">${safeValue(x.action)}</span></td><td>${safeValue(x.entity_type)}</td><td>${safeValue(auditFriendlyRecord(x,parseAuditDetails(x.details),(state.products||[]).find(p=>String(p.product_id||"")===String(x.entity_id||""))))}</td><td class="audit-detail-summary">${safeValue(auditDetailsText(x))}</td></tr>`).join(""):`<tr><td colspan="7" class="empty-cell">${t("ບໍ່ພົບຂໍ້ມູນ")}</td></tr>`;
  paintPagination('audit',auditPage,list.length,auditPageSize);
  if($("#auditMetrics"))$("#auditMetrics").innerHTML=[[t("Log ທັງໝົດ"),rows.length],[t("Login"),rows.filter(x=>x.action==="LOGIN").length],[t("ການແກ້ໄຂ"),rows.filter(x=>String(x.action).includes("UPDATE")).length],[t("ການລຶບ"),rows.filter(x=>String(x.action).includes("DELETE")).length]].map(x=>`<div class="metric"><span>${x[0]}</span><strong>${x[1]}</strong></div>`).join("");
 }
