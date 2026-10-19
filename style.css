@@ -1307,3 +1307,8 @@ body.dark .language-switcher{background:rgba(15,23,42,.72)}
 @keyframes notificationExit{to{opacity:0;transform:translateY(-12px) scale(.98)}}
 @media(max-width:600px){#toast.toast{top:12px!important;right:12px!important;width:calc(100vw - 24px)}}
 @media(prefers-reduced-motion:reduce){.notification-item,.notification-leaving{animation:none}}
+
+/* Centered top pop-up notifications */
+#toast.toast{top:clamp(20px,8vh,85px)!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;width:min(420px,calc(100vw - 28px))!important;max-width:420px!important;align-items:stretch!important}
+@keyframes notificationDrop{from{opacity:0;transform:translateY(-28px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:600px){#toast.toast{top:24px!important;left:50%!important;right:auto!important;width:calc(100vw - 28px)!important}}
