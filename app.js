@@ -634,7 +634,31 @@ function setText(selector,value){
   return el;
 }
 
-function toast(m){const t=$("#toast");if(!t){console.warn("Toast element missing:",m);return}setText(t,m);t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2200)}
+let toastSequence=0;
+function toast(message, kind){
+  const host=$("#toast");if(!host){console.warn("Toast element missing:",message);return}
+  const msg=String(message??"");
+  const failure=/ບໍ່ສຳເລັດ|ບໍ່ໄດ້|ຜິດພາດ|失败|错误|无法|error|failed/i.test(msg);
+  const success=/ສຳເລັດ|ແລ້ວ|成功|完成|已删除|已保存|已更新|saved|updated|deleted|completed/i.test(msg);
+  const pending=/ກຳລັງ|正在|loading|processing/i.test(msg);
+  const type=kind||(failure?"error":success?"success":pending?"info":"info");
+  const title=type==="success"?tl("ດຳເນີນການສຳເລັດ","操作成功"):type==="error"?tl("ມີຂໍ້ຜິດພາດ","操作失败"):tl("ແຈ້ງເຕືອນ","通知");
+  const icons={success:"✓",error:"!",info:"i"};
+  const item=document.createElement("div");item.className="notification-item notification-"+type;
+  const symbol=document.createElement("span");symbol.className="notification-symbol";symbol.textContent=icons[type];
+  const body=document.createElement("div");body.className="notification-body";
+  const heading=document.createElement("strong");heading.textContent=title;
+  const detail=document.createElement("span");detail.textContent=msg;
+  body.append(heading,detail);
+  const close=document.createElement("button");close.type="button";close.className="notification-close";close.setAttribute("aria-label","Close notification");close.textContent="×";
+  const dismiss=()=>{item.classList.add("notification-leaving");setTimeout(()=>item.remove(),260)};
+  close.addEventListener("click",dismiss);
+  item.append(symbol,body,close);host.prepend(item);host.classList.add("show");
+  while(host.children.length>4)host.lastElementChild.remove();
+  const duration=type==="error"?6000:3500;
+  setTimeout(dismiss,duration);
+}
+
 function statusOf(p){if(Number(p.stock_qty)<=0)return"out";if(Number(p.stock_qty)<=Number(p.minimum_stock))return"low";return"normal"}
 async function api(action,data={}){
   if(!window.SANLIAN_SUPABASE?.call)throw new Error(tl("Supabase adapter ບໍ່ໄດ້ໂຫຼດ","Supabase 适配器未加载"));

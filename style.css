@@ -1293,3 +1293,17 @@ body.dark .language-switcher{background:rgba(15,23,42,.72)}
 #auditDetailModal .audit-highlight-row strong[data-identifier]{font-family:Consolas,'Courier New',monospace!important;font-size:18px!important;letter-spacing:.15px!important}
 #auditDetailModal .audit-copy-btn{background:#eff6ff;border:1px solid #93c5fd;border-radius:7px;padding:6px 12px;color:#1d4ed8;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0}
 @media(max-width:620px){#auditDetailModal .audit-highlight-row strong{font-size:16px!important;flex-basis:100%}}
+
+/* Top-right slide-down notifications shared by all forms */
+#toast.toast{position:fixed!important;top:20px!important;right:20px!important;bottom:auto!important;left:auto!important;width:min(390px,calc(100vw - 32px));max-width:390px;background:transparent!important;padding:0!important;box-shadow:none!important;border:0!important;opacity:1!important;transform:none!important;pointer-events:none;display:flex;flex-direction:column;gap:10px;z-index:100000!important}
+.notification-item{pointer-events:auto;display:flex;align-items:flex-start;gap:12px;padding:14px 13px;border-radius:16px;background:#fff;color:#172033;box-shadow:0 12px 38px rgba(15,23,42,.17);border:1px solid #e5eaf1;border-left:4px solid #3b82f6;animation:notificationDrop .35s cubic-bezier(.2,.85,.2,1) both;overflow-wrap:anywhere}
+.notification-success{border-left-color:#16a34a}.notification-error{border-left-color:#dc2626}.notification-info{border-left-color:#2563eb}
+.notification-symbol{flex:0 0 32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:18px;font-weight:800;background:#dbeafe;color:#1d4ed8}
+.notification-success .notification-symbol{background:#dcfce7;color:#15803d}.notification-error .notification-symbol{background:#fee2e2;color:#b91c1c}
+.notification-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:13px;line-height:1.55}.notification-body strong{font-size:14px;color:#101828}.notification-body span{color:#475467}
+.notification-close{background:transparent;border:0;color:#98a2b3;font-size:22px;line-height:1;cursor:pointer;padding:0 3px}.notification-close:hover{color:#344054}
+.notification-leaving{animation:notificationExit .25s ease forwards}
+@keyframes notificationDrop{from{opacity:0;transform:translateY(-24px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes notificationExit{to{opacity:0;transform:translateY(-12px) scale(.98)}}
+@media(max-width:600px){#toast.toast{top:12px!important;right:12px!important;width:calc(100vw - 24px)}}
+@media(prefers-reduced-motion:reduce){.notification-item,.notification-leaving{animation:none}}
